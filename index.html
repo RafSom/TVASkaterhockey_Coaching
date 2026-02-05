@@ -2621,6 +2621,23 @@
             });
         }
 
+async function pruefeObUebungVerwendetWird(uebungId) {
+    const { data, error } = await supabaseClient
+        .from('trainingsplaene')
+        .select('*')
+        .or(`uebung1_id.eq.${uebungId},uebung2_id.eq.${uebungId},uebung3_id.eq.${uebungId}`);
+    return data && data.length > 0;
+}
+
+async function loescheUebung(uebungId) {
+    const verwendet = await pruefeObUebungVerwendetWird(uebungId);
+    if (verwendet) {
+        alert('Übung wird noch in Trainingsplan verwendet!');
+        return;
+    }
+    // ... sonst löschen
+}
+
         initSupabase();
     </script>
 </body>
