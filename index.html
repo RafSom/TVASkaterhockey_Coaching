@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TVA Skaterhockey - Trainingsplan</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         * {
@@ -270,14 +269,14 @@
             border-top: 5px solid #005EB8;
         }
 
-	.modal-content.fullscreen {
-    	max-width: 100%;
-    	width: 100%;
-    	height: 100vh;
-    	max-height: 100vh;
-    	border-radius: 0;
-    	padding: 20px;
-     }
+        .modal-content.fullscreen {
+            max-width: 100%;
+            width: 100%;
+            height: 100vh;
+            max-height: 100vh;
+            border-radius: 0;
+            padding: 20px;
+        }
 
         .modal-header {
             display: flex;
@@ -290,10 +289,10 @@
             color: #005EB8;
         }
 
-    body.modal-open {
-    overflow: hidden;
-    height: 100vh;
-   }
+        body.modal-open {
+            overflow: hidden;
+            height: 100vh;
+        }
 
         .close-btn {
             background: none;
@@ -429,6 +428,12 @@
             background: #fff3e6;
             color: #cc5200;
             border-left-color: #FF6600;
+        }
+
+        .alert-danger {
+            background: #ffe6e6;
+            color: #cc0000;
+            border-left-color: #FF3333;
         }
 
         .loading {
@@ -617,10 +622,49 @@
             color: #005EB8;
         }
 
+        .canvas-container {
+            position: relative;
+            display: inline-block;
+            max-width: 100%;
+        }
+
+        .divider-line {
+            position: absolute;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: #FF3333;
+            cursor: ns-resize;
+            z-index: 10;
+        }
+
+        .divider-line::before {
+            content: '⬍';
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%) rotate(90deg);
+            background: #FF3333;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .divider-line:hover {
+            background: #cc0000;
+        }
+
+        .divider-line:hover::before {
+            background: #cc0000;
+        }
+
         #preview-canvas, #adjust-canvas {
             max-width: 100%;
             border: 2px solid #e0e0e0;
             border-radius: 10px;
+            display: block;
         }
 
         .uebung-checkboxes {
@@ -653,13 +697,13 @@
             margin-bottom: 15px;
         }
 
-	.uebung-preview-small {
-    	max-width: 100%;
-    	width: 100%;
-    	border-radius: 8px;
-    	margin-bottom: 15px;
-    	border: 2px solid #e0e0e0;
-}
+        .uebung-preview-small {
+            max-width: 100%;
+            width: 100%;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border: 2px solid #e0e0e0;
+        }
 
         .hashtag-selection {
             display: flex;
@@ -680,54 +724,54 @@
             transition: all 0.3s;
         }
 
-.hashtag-dropdown {
-    position: relative;
-    margin-bottom: 15px;
-}
+        .hashtag-dropdown {
+            position: relative;
+            margin-bottom: 15px;
+        }
 
-.hashtag-dropdown-toggle {
-    width: 100%;
-    padding: 12px;
-    background: white;
-    border: 2px solid #005EB8;
-    border-radius: 8px;
-    cursor: pointer;
-    text-align: left;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
+        .hashtag-dropdown-toggle {
+            width: 100%;
+            padding: 12px;
+            background: white;
+            border: 2px solid #005EB8;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: left;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
 
-.hashtag-dropdown-content {
-    display: none;
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
-    background: white;
-    border: 2px solid #005EB8;
-    border-radius: 8px;
-    padding: 15px;
-    margin-top: 5px;
-    z-index: 100;
-    max-height: 300px;
-    overflow-y: auto;
-}
+        .hashtag-dropdown-content {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 2px solid #005EB8;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 5px;
+            z-index: 100;
+            max-height: 300px;
+            overflow-y: auto;
+        }
 
-.hashtag-dropdown-content.open {
-    display: block;
-}
+        .hashtag-dropdown-content.open {
+            display: block;
+        }
 
-.hashtag-selection-compact {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 8px;
-}
+        .hashtag-selection-compact {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+        }
 
-.hashtag-checkbox-compact {
-    padding: 8px;
-    font-size: 14px;
-}
+        .hashtag-checkbox-compact {
+            padding: 8px;
+            font-size: 14px;
+        }
 
         .plan-builder-slots {
             display: grid;
@@ -841,6 +885,37 @@
             margin-top: 15px;
         }
 
+        .plan-detail-uebungen {
+            display: grid;
+            gap: 30px;
+        }
+
+        .plan-detail-uebung {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 15px;
+            overflow: hidden;
+        }
+
+        .plan-detail-uebung-header {
+            background: #005EB8;
+            color: white;
+            padding: 15px;
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+
+        .plan-detail-uebung img {
+            width: 100%;
+            display: block;
+            cursor: zoom-in;
+        }
+
+        .plan-detail-uebung-info {
+            padding: 15px;
+            background: #f8f9fa;
+        }
+
         @media (max-width: 768px) {
             .container {
                 padding: 15px;
@@ -875,38 +950,6 @@
                 grid-template-columns: 1fr;
             }
         }
-
-.plan-detail-uebungen {
-    display: grid;
-    gap: 30px;
-}
-
-.plan-detail-uebung {
-    background: white;
-    border: 2px solid #e0e0e0;
-    border-radius: 15px;
-    overflow: hidden;
-}
-
-.plan-detail-uebung-header {
-    background: #005EB8;
-    color: white;
-    padding: 15px;
-    font-weight: bold;
-    font-size: 1.1em;
-}
-
-.plan-detail-uebung img {
-    width: 100%;
-    display: block;
-    cursor: zoom-in;
-}
-
-.plan-detail-uebung-info {
-    padding: 15px;
-    background: #f8f9fa;
-}
-
     </style>
 </head>
 <body>
@@ -1051,8 +1094,8 @@
         </div>
     </div>
 
-   <div id="upload-modal" class="modal">
-    <div class="modal-content fullscreen">
+    <div id="upload-modal" class="modal">
+        <div class="modal-content fullscreen">
             <div class="modal-header">
                 <h3>Übungen hochladen</h3>
                 <button class="close-btn" onclick="closeModal('upload-modal')">&times;</button>
@@ -1075,15 +1118,20 @@
 
                 <div id="upload-step-2" class="upload-step">
                     <h4>Schritt 2: Übungsbereiche anpassen</h4>
-                    <p style="color: #666; margin-bottom: 15px;">Deaktiviere nicht benötigte Übungen.</p>
+                    <p style="color: #666; margin-bottom: 15px;">
+                        🔴 <strong>Ziehe die roten Linien</strong>, um die Übungsbereiche anzupassen.<br>
+                        Deaktiviere nicht benötigte Übungen.
+                    </p>
                     
-                    <canvas id="adjust-canvas" style="max-width: 100%;"></canvas>
+                    <div class="canvas-container" id="canvas-container">
+                        <canvas id="adjust-canvas" style="max-width: 100%;"></canvas>
+                    </div>
 
                     <div class="uebung-checkboxes">
-                        <label><input type="checkbox" id="use-uebung-1" checked> Übung 1 verwenden</label>
-                        <label><input type="checkbox" id="use-uebung-2" checked> Übung 2 verwenden</label>
-                        <label><input type="checkbox" id="use-uebung-3" checked> Übung 3 verwenden</label>
-                        <label><input type="checkbox" id="use-uebung-4" checked> Übung 4 verwenden</label>
+                        <label><input type="checkbox" id="use-uebung-1" checked onchange="updateDividerVisibility()"> Übung 1 verwenden</label>
+                        <label><input type="checkbox" id="use-uebung-2" checked onchange="updateDividerVisibility()"> Übung 2 verwenden</label>
+                        <label><input type="checkbox" id="use-uebung-3" checked onchange="updateDividerVisibility()"> Übung 3 verwenden</label>
+                        <label><input type="checkbox" id="use-uebung-4" checked onchange="updateDividerVisibility()"> Übung 4 verwenden</label>
                     </div>
 
                     <div style="margin-top: 20px;">
@@ -1163,27 +1211,26 @@
         </div>
     </div>
 
-<!-- Trainingsplan Detail Modal -->
-<div id="plan-detail-modal" class="modal">
-    <div class="modal-content fullscreen">
-        <div class="modal-header">
-            <h3 id="plan-detail-titel"></h3>
-            <button class="close-btn" onclick="closeModal('plan-detail-modal')">&times;</button>
-        </div>
-        
-        <div style="text-align: center; margin-bottom: 20px;">
-            <span id="plan-detail-datum" style="color: #666; font-size: 1.1em;"></span>
-        </div>
+    <div id="plan-detail-modal" class="modal">
+        <div class="modal-content fullscreen">
+            <div class="modal-header">
+                <h3 id="plan-detail-titel"></h3>
+                <button class="close-btn" onclick="closeModal('plan-detail-modal')">&times;</button>
+            </div>
+            
+            <div style="text-align: center; margin-bottom: 20px;">
+                <span id="plan-detail-datum" style="color: #666; font-size: 1.1em;"></span>
+            </div>
 
-        <div style="text-align: center; margin-bottom: 30px;">
-            <button class="btn-copy" onclick="exportPlanAsPDF()" style="background: #FF3333;">
-                📄 Als PDF exportieren
-            </button>
+            <div style="text-align: center; margin-bottom: 30px;">
+                <button class="btn-copy" onclick="exportPlanAsPDF()" style="background: #FF3333;">
+                    📄 Als PDF exportieren
+                </button>
+            </div>
+            
+            <div id="plan-detail-uebungen" class="plan-detail-uebungen"></div>
         </div>
-        
-        <div id="plan-detail-uebungen" class="plan-detail-uebungen"></div>
     </div>
-</div>
 
     <script>
         var supabaseClient = null;
@@ -1197,6 +1244,10 @@
         var uploadedImage = null;
         var verfuegbareHashtags = ['#Torschuss', '#Passen', '#Technik', '#Verteidigung', '#Kondition', '#1vs1', '#2vs2', '#3vs3', '#2vs1', '#3vs2', '#Überzahl', '#Unterzahl', '#Skating', '#Aufbau'];
         var activeHashtagFilter = [];
+        var customDividers = [0.25, 0.5, 0.75]; // Prozentuale Positionen der Trennlinien
+        var dividerElements = [];
+        var isDraggingDivider = false;
+        var aktuellerDetailPlan = null;
 
         function initSupabase() {
             if (window.supabase && !supabaseClient) {
@@ -1204,9 +1255,23 @@
                     'https://taqddhnkptncfyxjjakj.supabase.co',
                     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRhcWRkaG5rcHRuY2Z5eGpqYWtqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk0MjQzOTEsImV4cCI6MjA4NTAwMDM5MX0.AROK1hnUFUms3bNPci-4L-sBK-1Wr_1hotsuOjWtxhA'
                 );
+                checkStorageSetup();
                 init();
             } else if (!window.supabase) {
                 setTimeout(initSupabase, 100);
+            }
+        }
+
+        async function checkStorageSetup() {
+            try {
+                var buckets = await supabaseClient.storage.listBuckets();
+                var hasUebungsbilder = buckets.data && buckets.data.some(function(b) { return b.name === 'uebungsbilder'; });
+                
+                if (!hasUebungsbilder) {
+                    console.warn('⚠️ Storage-Bucket "uebungsbilder" nicht gefunden!');
+                }
+            } catch (err) {
+                console.error('Storage-Check fehlgeschlagen:', err);
             }
         }
 
@@ -1314,27 +1379,27 @@
         }
 
         function openAddSpielerModal() {
-    document.getElementById('modal-title').textContent = 'Spieler hinzufuegen';
-    document.getElementById('edit-id').value = '';
-    document.getElementById('spieler-name').value = '';
-    document.getElementById('spieler-position').value = 'Angreifer';
-    document.getElementById('spieler-staerke').value = '5';
-    document.getElementById('spieler-modal').classList.add('active');
-    document.body.classList.add('modal-open');
-}
+            document.getElementById('modal-title').textContent = 'Spieler hinzufuegen';
+            document.getElementById('edit-id').value = '';
+            document.getElementById('spieler-name').value = '';
+            document.getElementById('spieler-position').value = 'Angreifer';
+            document.getElementById('spieler-staerke').value = '5';
+            document.getElementById('spieler-modal').classList.add('active');
+            document.body.classList.add('modal-open');
+        }
 
         function editSpieler(id) {
-    var spieler = spielerListe.find(function(s) { return s.id === id; });
-    if (!spieler) return;
+            var spieler = spielerListe.find(function(s) { return s.id === id; });
+            if (!spieler) return;
 
-    document.getElementById('modal-title').textContent = 'Spieler bearbeiten';
-    document.getElementById('edit-id').value = spieler.id;
-    document.getElementById('spieler-name').value = spieler.name;
-    document.getElementById('spieler-position').value = spieler.position;
-    document.getElementById('spieler-staerke').value = spieler.staerke;
-    document.getElementById('spieler-modal').classList.add('active');
-    document.body.classList.add('modal-open');
-}
+            document.getElementById('modal-title').textContent = 'Spieler bearbeiten';
+            document.getElementById('edit-id').value = spieler.id;
+            document.getElementById('spieler-name').value = spieler.name;
+            document.getElementById('spieler-position').value = spieler.position;
+            document.getElementById('spieler-staerke').value = spieler.staerke;
+            document.getElementById('spieler-modal').classList.add('active');
+            document.body.classList.add('modal-open');
+        }
 
         async function deleteSpieler(id) {
             if (!confirm('Spieler wirklich loeschen?')) return;
@@ -1375,10 +1440,10 @@
             await ladeSpieler();
         }
 
-       function closeModal(modalId) {
-       document.getElementById(modalId).classList.remove('active');
-       document.body.classList.remove('modal-open');
-     }
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+            document.body.classList.remove('modal-open');
+        }
 
         function openAbwesendeModal() {
             var container = document.getElementById('abwesende-liste');
@@ -1646,114 +1711,111 @@
             return { block1: spielerListe, block2: [] };
         }
 
-function initDragAndDrop() {
-    var draggables = document.querySelectorAll('.block-spieler.draggable');
-    var blocks = document.querySelectorAll('.block[data-block-id]');
-    var draggedElement = null;
+        function initDragAndDrop() {
+            var draggables = document.querySelectorAll('.block-spieler.draggable');
+            var blocks = document.querySelectorAll('.block[data-block-id]');
+            var draggedElement = null;
 
-    draggables.forEach(function(elem) {
-        // Desktop: Drag Events
-        elem.addEventListener('dragstart', function(e) {
-            draggedElement = this;
-            this.classList.add('dragging');
-            e.dataTransfer.effectAllowed = 'move';
-            e.dataTransfer.setData('text/html', this.innerHTML);
-        });
+            draggables.forEach(function(elem) {
+                elem.addEventListener('dragstart', function(e) {
+                    draggedElement = this;
+                    this.classList.add('dragging');
+                    e.dataTransfer.effectAllowed = 'move';
+                    e.dataTransfer.setData('text/html', this.innerHTML);
+                });
 
-        elem.addEventListener('dragend', function(e) {
-            this.classList.remove('dragging');
-            var allBlocks = document.querySelectorAll('.block[data-block-id]');
-            allBlocks.forEach(function(b) { b.classList.remove('drag-over'); });
-            draggedElement = null;
-        });
-
-        // Touch Events für Mobile
-        var touchStartY, touchStartX, touchElement, isTouching;
-        
-        elem.addEventListener('touchstart', function(e) {
-            touchElement = this;
-            isTouching = false;
-            var touch = e.touches[0];
-            touchStartX = touch.clientX;
-            touchStartY = touch.clientY;
-        });
-
-        elem.addEventListener('touchmove', function(e) {
-            if (!touchElement) return;
-            
-            var touch = e.touches[0];
-            var deltaX = Math.abs(touch.clientX - touchStartX);
-            var deltaY = Math.abs(touch.clientY - touchStartY);
-            
-            if (deltaX > 10 || deltaY > 10) {
-                e.preventDefault();
-                isTouching = true;
-                touchElement.classList.add('dragging');
-                
-                var elementAtPoint = document.elementFromPoint(touch.clientX, touch.clientY);
-                if (elementAtPoint) {
-                    var targetBlock = elementAtPoint.closest('.block[data-block-id]');
+                elem.addEventListener('dragend', function(e) {
+                    this.classList.remove('dragging');
                     var allBlocks = document.querySelectorAll('.block[data-block-id]');
                     allBlocks.forEach(function(b) { b.classList.remove('drag-over'); });
-                    if (targetBlock) targetBlock.classList.add('drag-over');
-                }
-            }
-        });
+                    draggedElement = null;
+                });
 
-        elem.addEventListener('touchend', function(e) {
-            if (!touchElement) return;
-            
-            touchElement.classList.remove('dragging');
-            
-            if (isTouching) {
-                var touch = e.changedTouches[0];
-                var elementAtPoint = document.elementFromPoint(touch.clientX, touch.clientY);
+                var touchStartY, touchStartX, touchElement, isTouching;
                 
-                if (elementAtPoint) {
-                    var targetBlock = elementAtPoint.closest('.block[data-block-id]');
-                    var sourceBlock = touchElement.closest('.block[data-block-id]');
+                elem.addEventListener('touchstart', function(e) {
+                    touchElement = this;
+                    isTouching = false;
+                    var touch = e.touches[0];
+                    touchStartX = touch.clientX;
+                    touchStartY = touch.clientY;
+                });
+
+                elem.addEventListener('touchmove', function(e) {
+                    if (!touchElement) return;
                     
-                    if (targetBlock && sourceBlock && targetBlock !== sourceBlock) {
-                        targetBlock.querySelector('.block-header').insertAdjacentElement('afterend', touchElement);
+                    var touch = e.touches[0];
+                    var deltaX = Math.abs(touch.clientX - touchStartX);
+                    var deltaY = Math.abs(touch.clientY - touchStartY);
+                    
+                    if (deltaX > 10 || deltaY > 10) {
+                        e.preventDefault();
+                        isTouching = true;
+                        touchElement.classList.add('dragging');
+                        
+                        var elementAtPoint = document.elementFromPoint(touch.clientX, touch.clientY);
+                        if (elementAtPoint) {
+                            var targetBlock = elementAtPoint.closest('.block[data-block-id]');
+                            var allBlocks = document.querySelectorAll('.block[data-block-id]');
+                            allBlocks.forEach(function(b) { b.classList.remove('drag-over'); });
+                            if (targetBlock) targetBlock.classList.add('drag-over');
+                        }
+                    }
+                });
+
+                elem.addEventListener('touchend', function(e) {
+                    if (!touchElement) return;
+                    
+                    touchElement.classList.remove('dragging');
+                    
+                    if (isTouching) {
+                        var touch = e.changedTouches[0];
+                        var elementAtPoint = document.elementFromPoint(touch.clientX, touch.clientY);
+                        
+                        if (elementAtPoint) {
+                            var targetBlock = elementAtPoint.closest('.block[data-block-id]');
+                            var sourceBlock = touchElement.closest('.block[data-block-id]');
+                            
+                            if (targetBlock && sourceBlock && targetBlock !== sourceBlock) {
+                                targetBlock.querySelector('.block-header').insertAdjacentElement('afterend', touchElement);
+                                updateBlockStaerken();
+                            }
+                        }
+                    }
+                    
+                    var allBlocks = document.querySelectorAll('.block[data-block-id]');
+                    allBlocks.forEach(function(b) { b.classList.remove('drag-over'); });
+                    isTouching = false;
+                    touchElement = null;
+                });
+            });
+
+            blocks.forEach(function(block) {
+                block.addEventListener('dragover', function(e) {
+                    e.preventDefault();
+                    this.classList.add('drag-over');
+                    return false;
+                });
+
+                block.addEventListener('dragleave', function() {
+                    this.classList.remove('drag-over');
+                });
+
+                block.addEventListener('drop', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    this.classList.remove('drag-over');
+                    
+                    if (draggedElement && draggedElement.parentElement !== this) {
+                        this.querySelector('.block-header').insertAdjacentElement('afterend', draggedElement);
                         updateBlockStaerken();
                     }
-                }
-            }
-            
-            var allBlocks = document.querySelectorAll('.block[data-block-id]');
-            allBlocks.forEach(function(b) { b.classList.remove('drag-over'); });
-            isTouching = false;
-            touchElement = null;
-        });
-    });
+                    
+                    return false;
+                });
+            });
+        }
 
-    blocks.forEach(function(block) {
-        block.addEventListener('dragover', function(e) {
-            e.preventDefault();
-            this.classList.add('drag-over');
-            return false;
-        });
-
-        block.addEventListener('dragleave', function() {
-            this.classList.remove('drag-over');
-        });
-
-        block.addEventListener('drop', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            this.classList.remove('drag-over');
-            
-            if (draggedElement && draggedElement.parentElement !== this) {
-                this.querySelector('.block-header').insertAdjacentElement('afterend', draggedElement);
-                updateBlockStaerken();
-            }
-            
-            return false;
-        });
-    });
-}
-
-     
         function updateBlockStaerken() {
             var blocks = document.querySelectorAll('.block[data-block-id]');
             blocks.forEach(function(block) {
@@ -1788,7 +1850,7 @@ function initDragAndDrop() {
 
         function openUploadModal() {
             document.getElementById('upload-modal').classList.add('active');
-	    document.body.classList.add('modal-open');
+            document.body.classList.add('modal-open');
             goToStep(1);
             setupFileUpload();
         }
@@ -1858,109 +1920,192 @@ function initDragAndDrop() {
             canvas.height = uploadedImage.height * scale;
             
             ctx.drawImage(uploadedImage, 0, 0, canvas.width, canvas.height);
+            
+            // Trennlinien zurücksetzen
+            customDividers = [0.25, 0.5, 0.75];
+            createDividerLines();
+        }
+
+        function createDividerLines() {
+            var container = document.getElementById('canvas-container');
+            var canvas = document.getElementById('adjust-canvas');
+            
+            // Alte Linien entfernen
+            dividerElements.forEach(function(el) {
+                if (el.parentNode) el.parentNode.removeChild(el);
+            });
+            dividerElements = [];
+            
+            // Neue Linien erstellen
+            customDividers.forEach(function(pos, index) {
+                var line = document.createElement('div');
+                line.className = 'divider-line';
+                line.style.top = (pos * canvas.height) + 'px';
+                line.setAttribute('data-index', index);
+                
+                // Mouse Events
+                line.addEventListener('mousedown', startDragDivider);
+                
+                // Touch Events
+                line.addEventListener('touchstart', startDragDivider);
+                
+                container.appendChild(line);
+                dividerElements.push(line);
+            });
+            
+            updateDividerVisibility();
+        }
+
+        function startDragDivider(e) {
+            e.preventDefault();
+            isDraggingDivider = true;
+            var dividerIndex = parseInt(this.getAttribute('data-index'));
+            var canvas = document.getElementById('adjust-canvas');
+            
+            function onMove(e) {
+                if (!isDraggingDivider) return;
+                
+                var clientY = e.clientY || (e.touches && e.touches[0].clientY);
+                var rect = canvas.getBoundingClientRect();
+                var relativeY = clientY - rect.top;
+                var percentage = Math.max(0.05, Math.min(0.95, relativeY / canvas.height));
+                
+                customDividers[dividerIndex] = percentage;
+                customDividers.sort(function(a, b) { return a - b; });
+                
+                updateDividerPositions();
+            }
+            
+            function onEnd() {
+                isDraggingDivider = false;
+                document.removeEventListener('mousemove', onMove);
+                document.removeEventListener('mouseup', onEnd);
+                document.removeEventListener('touchmove', onMove);
+                document.removeEventListener('touchend', onEnd);
+            }
+            
+            document.addEventListener('mousemove', onMove);
+            document.addEventListener('mouseup', onEnd);
+            document.addEventListener('touchmove', onMove);
+            document.addEventListener('touchend', onEnd);
+        }
+
+        function updateDividerPositions() {
+            var canvas = document.getElementById('adjust-canvas');
+            dividerElements.forEach(function(line, index) {
+                line.style.top = (customDividers[index] * canvas.height) + 'px';
+                line.setAttribute('data-index', index);
+            });
+        }
+
+        function updateDividerVisibility() {
+            dividerElements.forEach(function(line, index) {
+                var checkbox = document.getElementById('use-uebung-' + (index + 2));
+                if (checkbox && !checkbox.checked) {
+                    line.style.display = 'none';
+                } else {
+                    line.style.display = 'block';
+                }
+            });
         }
 
         function setupHashtagForms() {
-    var container = document.getElementById('uebung-hashtag-forms');
-    container.innerHTML = '';
-    
-    for (var i = 1; i <= 4; i++) {
-        var checkbox = document.getElementById('use-uebung-' + i);
-        if (!checkbox.checked) continue;
-        
-        var uebungBild = getUebungImage(i);
-        
-        var form = document.createElement('div');
-        form.className = 'uebung-hashtag-form';
-        form.setAttribute('data-uebung', i);
-        
-        var html = '<h5>Übung ' + i + '</h5>';
-        html += '<img src="' + uebungBild + '" class="uebung-preview-small" onclick="zoomImage(this.src)">';
-        
-        // Hashtag Dropdown
-        html += '<div class="hashtag-dropdown">';
-        html += '<button type="button" class="hashtag-dropdown-toggle" onclick="toggleHashtagDropdown(' + i + ')">';
-        html += '<span id="selected-tags-' + i + '">Hashtags auswählen (0)</span>';
-        html += '<span>▼</span>';
-        html += '</button>';
-        html += '<div class="hashtag-dropdown-content" id="hashtag-dropdown-' + i + '">';
-        html += '<div class="hashtag-selection-compact">';
-        
-        verfuegbareHashtags.forEach(function(tag) {
-            html += '<label class="hashtag-checkbox">';
-            html += '<input type="checkbox" name="hashtag-' + i + '" value="' + tag + '" onchange="updateSelectedCount(' + i + ')">';
-            html += '<span>' + tag + '</span>';
-            html += '</label>';
-        });
-        
-        html += '</div></div></div>';
-        html += '<div class="form-group"><label>Eigene Hashtags:</label><input type="text" id="custom-hashtags-' + i + '" placeholder="#MeinTag"></div>';
-        html += '<div class="form-group"><label>Notizen:</label><input type="text" id="notizen-' + i + '" placeholder="Übungsbeschreibung"></div>';
-        
-        form.innerHTML = html;
-        container.appendChild(form);
-    }
-}
+            var container = document.getElementById('uebung-hashtag-forms');
+            container.innerHTML = '';
+            
+            for (var i = 1; i <= 4; i++) {
+                var checkbox = document.getElementById('use-uebung-' + i);
+                if (!checkbox.checked) continue;
+                
+                var uebungBild = getUebungImageCustom(i);
+                
+                var form = document.createElement('div');
+                form.className = 'uebung-hashtag-form';
+                form.setAttribute('data-uebung', i);
+                
+                var html = '<h5>Übung ' + i + '</h5>';
+                html += '<img src="' + uebungBild + '" class="uebung-preview-small" onclick="zoomImage(this.src)">';
+                
+                html += '<div class="hashtag-dropdown">';
+                html += '<button type="button" class="hashtag-dropdown-toggle" onclick="toggleHashtagDropdown(' + i + ')">';
+                html += '<span id="selected-tags-' + i + '">Hashtags auswählen (0)</span>';
+                html += '<span>▼</span>';
+                html += '</button>';
+                html += '<div class="hashtag-dropdown-content" id="hashtag-dropdown-' + i + '">';
+                html += '<div class="hashtag-selection-compact">';
+                
+                verfuegbareHashtags.forEach(function(tag) {
+                    html += '<label class="hashtag-checkbox">';
+                    html += '<input type="checkbox" name="hashtag-' + i + '" value="' + tag + '" onchange="updateSelectedCount(' + i + ')">';
+                    html += '<span>' + tag + '</span>';
+                    html += '</label>';
+                });
+                
+                html += '</div></div></div>';
+                html += '<div class="form-group"><label>Eigene Hashtags:</label><input type="text" id="custom-hashtags-' + i + '" placeholder="#MeinTag"></div>';
+                html += '<div class="form-group"><label>Notizen:</label><input type="text" id="notizen-' + i + '" placeholder="Übungsbeschreibung"></div>';
+                
+                form.innerHTML = html;
+                container.appendChild(form);
+            }
+        }
 
-function toggleHashtagDropdown(uebungNr) {
-    var dropdown = document.getElementById('hashtag-dropdown-' + uebungNr);
-    var isOpen = dropdown.classList.contains('open');
-    
-    // Schließe alle Dropdowns
-    document.querySelectorAll('.hashtag-dropdown-content').forEach(function(d) {
-        d.classList.remove('open');
-    });
-    
-    // Toggle aktuelles Dropdown
-    if (!isOpen) {
-        dropdown.classList.add('open');
-    }
-}
+        function getUebungImageCustom(index) {
+            var canvas = document.getElementById('adjust-canvas');
+            var tempCanvas = document.createElement('canvas');
+            var ctx = tempCanvas.getContext('2d');
+            
+            var positions = [0].concat(customDividers).concat([1]);
+            var startY = positions[index - 1] * canvas.height;
+            var endY = positions[index] * canvas.height;
+            var height = endY - startY;
+            
+            tempCanvas.width = canvas.width;
+            tempCanvas.height = height;
+            
+            ctx.drawImage(canvas, 0, startY, canvas.width, height, 0, 0, canvas.width, height);
+            
+            return tempCanvas.toDataURL('image/jpeg', 0.9);
+        }
 
-function updateSelectedCount(uebungNr) {
-    var checkboxes = document.querySelectorAll('input[name="hashtag-' + uebungNr + '"]:checked');
-    var count = checkboxes.length;
-    var span = document.getElementById('selected-tags-' + uebungNr);
-    
-    if (count === 0) {
-        span.textContent = 'Hashtags auswählen (0)';
-    } else {
-        var tags = [];
-        checkboxes.forEach(function(cb) {
-            tags.push(cb.value);
-        });
-        span.textContent = tags.slice(0, 3).join(' ') + (count > 3 ? ' +' + (count - 3) : '');
-    }
-}
+        function toggleHashtagDropdown(uebungNr) {
+            var dropdown = document.getElementById('hashtag-dropdown-' + uebungNr);
+            var isOpen = dropdown.classList.contains('open');
+            
+            document.querySelectorAll('.hashtag-dropdown-content').forEach(function(d) {
+                d.classList.remove('open');
+            });
+            
+            if (!isOpen) {
+                dropdown.classList.add('open');
+            }
+        }
 
-function zoomImage(src) {
-    var modal = document.createElement('div');
-    modal.className = 'modal active';
-    modal.onclick = function() {
-        document.body.removeChild(modal);
-    };
-    modal.innerHTML = '<div class="modal-content fullscreen" style="display: flex; align-items: center; justify-content: center;"><img src="' + src + '" style="max-width: 100%; max-height: 100%; object-fit: contain;"></div>';
-    document.body.appendChild(modal);
-}
+        function updateSelectedCount(uebungNr) {
+            var checkboxes = document.querySelectorAll('input[name="hashtag-' + uebungNr + '"]:checked');
+            var count = checkboxes.length;
+            var span = document.getElementById('selected-tags-' + uebungNr);
+            
+            if (count === 0) {
+                span.textContent = 'Hashtags auswählen (0)';
+            } else {
+                var tags = [];
+                checkboxes.forEach(function(cb) {
+                    tags.push(cb.value);
+                });
+                span.textContent = tags.slice(0, 3).join(' ') + (count > 3 ? ' +' + (count - 3) : '');
+            }
+        }
 
-        function getUebungImage(index) {
-    var canvas = document.getElementById('adjust-canvas');
-    var tempCanvas = document.createElement('canvas');
-    var ctx = tempCanvas.getContext('2d');
-    
-    // Header ausschließen (obere 10% des Bildes)
-    var headerHeight = canvas.height * 0.10;
-    var usableHeight = canvas.height - headerHeight;
-    var height = usableHeight / 4;
-    var startY = headerHeight + ((index - 1) * height);
-    
-    tempCanvas.width = canvas.width;
-    tempCanvas.height = height;
-    
-    ctx.drawImage(canvas, 0, startY, canvas.width, height, 0, 0, canvas.width, height);
-    
-    return tempCanvas.toDataURL('image/jpeg', 0.9);
-}
+        function zoomImage(src) {
+            var modal = document.createElement('div');
+            modal.className = 'modal active';
+            modal.onclick = function() {
+                document.body.removeChild(modal);
+            };
+            modal.innerHTML = '<div class="modal-content fullscreen" style="display: flex; align-items: center; justify-content: center;"><img src="' + src + '" style="max-width: 100%; max-height: 100%; object-fit: contain;"></div>';
+            document.body.appendChild(modal);
+        }
 
         async function saveUebungen() {
             var button = event.target;
@@ -1970,52 +2115,90 @@ function zoomImage(src) {
             try {
                 var forms = document.querySelectorAll('.uebung-hashtag-form');
                 var savedCount = 0;
+                var errors = [];
                 
                 for (var i = 0; i < forms.length; i++) {
                     var form = forms[i];
                     var uebungIndex = parseInt(form.getAttribute('data-uebung'));
                     
-                    var imageData = getUebungImage(uebungIndex);
-                    var blob = dataURLtoBlob(imageData);
-                    var fileName = 'uebung_' + Date.now() + '_' + uebungIndex + '.jpg';
-                    
-                    var uploadResult = await supabaseClient.storage.from('uebungsbilder').upload(fileName, blob);
-                    
-                    if (uploadResult.error) continue;
-                    
-                    var publicURL = supabaseClient.storage.from('uebungsbilder').getPublicUrl(fileName);
-                    
-                    var selectedHashtags = [];
-                    var checkboxes = form.querySelectorAll('input[name="hashtag-' + uebungIndex + '"]:checked');
-                    checkboxes.forEach(function(cb) {
-                        selectedHashtags.push(cb.value);
-                    });
-                    
-                    var customHashtags = document.getElementById('custom-hashtags-' + uebungIndex).value;
-                    if (customHashtags) {
-                        customHashtags.split(' ').forEach(function(tag) {
-                            if (tag.startsWith('#')) selectedHashtags.push(tag);
+                    try {
+                        var imageData = getUebungImageCustom(uebungIndex);
+                        var blob = dataURLtoBlob(imageData);
+                        var fileName = aktuellesMannschaftName.replace(/\s+/g, '_') + '_' + Date.now() + '_' + uebungIndex + '.jpg';
+                        
+                        // Upload mit besserem Error Handling
+                        var uploadResult = await supabaseClient.storage
+                            .from('uebungsbilder')
+                            .upload(fileName, blob, {
+                                contentType: 'image/jpeg',
+                                upsert: false
+                            });
+                        
+                        if (uploadResult.error) {
+                            errors.push('Upload Fehler (Übung ' + uebungIndex + '): ' + uploadResult.error.message);
+                            continue;
+                        }
+                        
+                        var publicURL = supabaseClient.storage
+                            .from('uebungsbilder')
+                            .getPublicUrl(fileName);
+                        
+                        if (!publicURL.data || !publicURL.data.publicUrl) {
+                            errors.push('Konnte URL nicht generieren für Übung ' + uebungIndex);
+                            continue;
+                        }
+                        
+                        var selectedHashtags = [];
+                        var checkboxes = form.querySelectorAll('input[name="hashtag-' + uebungIndex + '"]:checked');
+                        checkboxes.forEach(function(cb) {
+                            selectedHashtags.push(cb.value);
                         });
+                        
+                        var customHashtags = document.getElementById('custom-hashtags-' + uebungIndex).value;
+                        if (customHashtags) {
+                            customHashtags.split(' ').forEach(function(tag) {
+                                if (tag.startsWith('#')) selectedHashtags.push(tag);
+                            });
+                        }
+                        
+                        var notizen = document.getElementById('notizen-' + uebungIndex).value;
+                        
+                        var insertResult = await supabaseClient.from('uebungen').insert([{
+                            bild_url: publicURL.data.publicUrl,
+                            hashtags: selectedHashtags,
+                            titel: notizen || 'Übung ' + uebungIndex,
+                            notizen: notizen
+                        }]);
+                        
+                        if (insertResult.error) {
+                            errors.push('Datenbank Fehler (Übung ' + uebungIndex + '): ' + insertResult.error.message);
+                            continue;
+                        }
+                        
+                        savedCount++;
+                        
+                    } catch (err) {
+                        errors.push('Fehler bei Übung ' + uebungIndex + ': ' + err.message);
                     }
-                    
-                    var notizen = document.getElementById('notizen-' + uebungIndex).value;
-                    
-                    var insertResult = await supabaseClient.from('uebungen').insert([{
-                        bild_url: publicURL.data.publicUrl,
-                        hashtags: selectedHashtags,
-                        titel: notizen || 'Übung ' + uebungIndex,
-                        notizen: notizen
-                    }]);
-                    
-                    if (!insertResult.error) savedCount++;
                 }
                 
-                alert('✓ ' + savedCount + ' Übung(en) gespeichert!');
-                closeModal('upload-modal');
-                ladeUebungen();
+                if (errors.length > 0) {
+                    var errorContainer = document.createElement('div');
+                    errorContainer.className = 'alert alert-danger';
+                    errorContainer.innerHTML = '<strong>Fehler aufgetreten:</strong><br>' + errors.join('<br>');
+                    document.getElementById('upload-step-3').insertBefore(errorContainer, document.getElementById('uebung-hashtag-forms'));
+                }
+                
+                if (savedCount > 0) {
+                    alert('✓ ' + savedCount + ' Übung(en) gespeichert!' + (errors.length > 0 ? '\n\n⚠️ ' + errors.length + ' Fehler aufgetreten.' : ''));
+                    closeModal('upload-modal');
+                    ladeUebungen();
+                } else {
+                    alert('❌ Keine Übungen gespeichert.\n\n' + errors.join('\n'));
+                }
                 
             } catch (err) {
-                alert('Fehler: ' + err.message);
+                alert('Kritischer Fehler: ' + err.message);
             } finally {
                 button.disabled = false;
                 button.textContent = 'Übungen speichern';
@@ -2139,7 +2322,7 @@ function zoomImage(src) {
             document.getElementById('plan-builder-modal').classList.add('active');
             document.getElementById('plan-titel').value = '';
             document.getElementById('plan-datum').value = '';
-	    document.body.classList.add('modal-open');
+            document.body.classList.add('modal-open');
             ladeUebungenInSelects();
         }
 
@@ -2147,6 +2330,8 @@ function zoomImage(src) {
             var result = await supabaseClient.from('uebungen').select('*').order('created_at', { ascending: false });
             
             if (result.error || !result.data) return;
+            
+            alleUebungen = result.data;
             
             for (var i = 1; i <= 4; i++) {
                 var select = document.getElementById('uebung-select-' + i);
@@ -2267,10 +2452,10 @@ function zoomImage(src) {
             }
             
             html += '</div>';
-html += '<div class="trainingsplan-actions">';
-html += '<button class="btn-primary" onclick="showTrainingsplanDetail(' + plan.id + ')">📋 Anzeigen</button>';
-html += '<button class="btn-danger" onclick="deleteTrainingsplan(' + plan.id + ')">Löschen</button>';
-html += '</div>';
+            html += '<div class="trainingsplan-actions">';
+            html += '<button class="btn-primary" onclick="showTrainingsplanDetail(' + plan.id + ')">📋 Anzeigen</button>';
+            html += '<button class="btn-danger" onclick="deleteTrainingsplan(' + plan.id + ')">Löschen</button>';
+            html += '</div>';
             
             card.innerHTML = html;
             return card;
@@ -2286,165 +2471,155 @@ html += '</div>';
             ladeTrainingsplaene();
         }
 
-// Trainingsplan Detail anzeigen
-var aktuellerDetailPlan = null;
-
-async function showTrainingsplanDetail(planId) {
-    try {
-        var result = await supabaseClient.from('trainingsplaene').select('*').eq('id', planId).single();
-        
-        if (result.error || !result.data) {
-            alert('Fehler beim Laden');
-            return;
-        }
-        
-        aktuellerDetailPlan = result.data;
-        
-        document.getElementById('plan-detail-titel').textContent = result.data.titel;
-        
-        var datum = result.data.datum ? new Date(result.data.datum).toLocaleDateString('de-DE') : 'Kein Datum';
-        document.getElementById('plan-detail-datum').textContent = datum;
-        
-        var container = document.getElementById('plan-detail-uebungen');
-        container.innerHTML = '<div class="loading">Lade Übungen...</div>';
-        
-        var uebungIds = [result.data.uebung1_id, result.data.uebung2_id, result.data.uebung3_id, result.data.uebung4_id];
-        var uebungenHTML = '';
-        
-        for (var i = 0; i < uebungIds.length; i++) {
-            if (!uebungIds[i]) continue;
-            
-            var uebungResult = await supabaseClient.from('uebungen').select('*').eq('id', uebungIds[i]).single();
-            
-            if (uebungResult.data) {
-                var uebung = uebungResult.data;
-                uebungenHTML += '<div class="plan-detail-uebung">';
-                uebungenHTML += '<div class="plan-detail-uebung-header">Übung ' + (i + 1) + (uebung.titel ? ' - ' + uebung.titel : '') + '</div>';
-                uebungenHTML += '<img src="' + uebung.bild_url + '" alt="Übung ' + (i + 1) + '" onclick="zoomImage(\'' + uebung.bild_url + '\')">';
+        async function showTrainingsplanDetail(planId) {
+            try {
+                var result = await supabaseClient.from('trainingsplaene').select('*').eq('id', planId).single();
                 
-                if (uebung.hashtags && uebung.hashtags.length > 0) {
-                    uebungenHTML += '<div class="plan-detail-uebung-info">';
-                    uebungenHTML += '<strong>Tags:</strong> ';
-                    uebung.hashtags.forEach(function(tag) {
-                        uebungenHTML += '<span class="uebung-hashtag">' + tag + '</span> ';
-                    });
-                    uebungenHTML += '</div>';
+                if (result.error || !result.data) {
+                    alert('Fehler beim Laden');
+                    return;
                 }
                 
-                uebungenHTML += '</div>';
+                aktuellerDetailPlan = result.data;
+                
+                document.getElementById('plan-detail-titel').textContent = result.data.titel;
+                
+                var datum = result.data.datum ? new Date(result.data.datum).toLocaleDateString('de-DE') : 'Kein Datum';
+                document.getElementById('plan-detail-datum').textContent = datum;
+                
+                var container = document.getElementById('plan-detail-uebungen');
+                container.innerHTML = '<div class="loading">Lade Übungen...</div>';
+                
+                var uebungIds = [result.data.uebung1_id, result.data.uebung2_id, result.data.uebung3_id, result.data.uebung4_id];
+                var uebungenHTML = '';
+                
+                for (var i = 0; i < uebungIds.length; i++) {
+                    if (!uebungIds[i]) continue;
+                    
+                    var uebungResult = await supabaseClient.from('uebungen').select('*').eq('id', uebungIds[i]).single();
+                    
+                    if (uebungResult.data) {
+                        var uebung = uebungResult.data;
+                        uebungenHTML += '<div class="plan-detail-uebung">';
+                        uebungenHTML += '<div class="plan-detail-uebung-header">Übung ' + (i + 1) + (uebung.titel ? ' - ' + uebung.titel : '') + '</div>';
+                        uebungenHTML += '<img src="' + uebung.bild_url + '" alt="Übung ' + (i + 1) + '" onclick="zoomImage(\'' + uebung.bild_url + '\')">';
+                        
+                        if (uebung.hashtags && uebung.hashtags.length > 0) {
+                            uebungenHTML += '<div class="plan-detail-uebung-info">';
+                            uebungenHTML += '<strong>Tags:</strong> ';
+                            uebung.hashtags.forEach(function(tag) {
+                                uebungenHTML += '<span class="uebung-hashtag">' + tag + '</span> ';
+                            });
+                            uebungenHTML += '</div>';
+                        }
+                        
+                        uebungenHTML += '</div>';
+                    }
+                }
+                
+                container.innerHTML = uebungenHTML;
+                document.getElementById('plan-detail-modal').classList.add('active');
+                document.body.classList.add('modal-open');
+                
+            } catch (err) {
+                alert('Fehler: ' + err.message);
             }
         }
-        
-        container.innerHTML = uebungenHTML;
-        document.getElementById('plan-detail-modal').classList.add('active');
-	document.body.classList.add('modal-open');
-        
-    } catch (err) {
-        alert('Fehler: ' + err.message);
-    }
-}
 
-// PDF Export
-async function exportPlanAsPDF() {
-    if (!aktuellerDetailPlan) return;
-    
-    var button = event.target;
-    button.disabled = true;
-    button.textContent = '⏳ Erstelle PDF...';
-    
-    try {
-        var { jsPDF } = window.jspdf;
-        var pdf = new jsPDF('p', 'mm', 'a4');
-        
-        var pageWidth = 210;
-        var pageHeight = 297;
-        var margin = 15;
-        var imageWidth = pageWidth - (2 * margin);
-        
-        // Titel
-        pdf.setFontSize(18);
-        pdf.setTextColor(0, 94, 184);
-        pdf.text(aktuellerDetailPlan.titel, pageWidth / 2, 20, { align: 'center' });
-        
-        var datum = aktuellerDetailPlan.datum ? new Date(aktuellerDetailPlan.datum).toLocaleDateString('de-DE') : '';
-        if (datum) {
-            pdf.setFontSize(12);
-            pdf.setTextColor(100, 100, 100);
-            pdf.text(datum, pageWidth / 2, 28, { align: 'center' });
-        }
-        
-        var yPosition = 40;
-        var uebungIds = [aktuellerDetailPlan.uebung1_id, aktuellerDetailPlan.uebung2_id, aktuellerDetailPlan.uebung3_id, aktuellerDetailPlan.uebung4_id];
-        
-        for (var i = 0; i < uebungIds.length; i++) {
-            if (!uebungIds[i]) continue;
+        async function exportPlanAsPDF() {
+            if (!aktuellerDetailPlan) return;
             
-            var uebungResult = await supabaseClient.from('uebungen').select('*').eq('id', uebungIds[i]).single();
+            var button = event.target;
+            button.disabled = true;
+            button.textContent = '⏳ Erstelle PDF...';
             
-            if (uebungResult.data) {
-                var uebung = uebungResult.data;
+            try {
+                var { jsPDF } = window.jspdf;
+                var pdf = new jsPDF('p', 'mm', 'a4');
                 
-                // Neue Seite wenn nicht genug Platz
-                if (yPosition > 240) {
-                    pdf.addPage();
-                    yPosition = 20;
-                }
+                var pageWidth = 210;
+                var pageHeight = 297;
+                var margin = 15;
+                var imageWidth = pageWidth - (2 * margin);
                 
-                // Übungs-Titel
-                pdf.setFontSize(14);
+                pdf.setFontSize(18);
                 pdf.setTextColor(0, 94, 184);
-                pdf.text('Übung ' + (i + 1), margin, yPosition);
-                yPosition += 8;
+                pdf.text(aktuellerDetailPlan.titel, pageWidth / 2, 20, { align: 'center' });
                 
-                // Bild laden und einfügen
-                var img = await loadImageForPDF(uebung.bild_url);
-                var imgHeight = (img.height / img.width) * imageWidth;
-                
-                // Maximal 60mm hoch
-                if (imgHeight > 60) {
-                    imgHeight = 60;
+                var datum = aktuellerDetailPlan.datum ? new Date(aktuellerDetailPlan.datum).toLocaleDateString('de-DE') : '';
+                if (datum) {
+                    pdf.setFontSize(12);
+                    pdf.setTextColor(100, 100, 100);
+                    pdf.text(datum, pageWidth / 2, 28, { align: 'center' });
                 }
                 
-                pdf.addImage(img.src, 'JPEG', margin, yPosition, imageWidth, imgHeight);
-                yPosition += imgHeight + 5;
+                var yPosition = 40;
+                var uebungIds = [aktuellerDetailPlan.uebung1_id, aktuellerDetailPlan.uebung2_id, aktuellerDetailPlan.uebung3_id, aktuellerDetailPlan.uebung4_id];
                 
-                // Hashtags
-                if (uebung.hashtags && uebung.hashtags.length > 0) {
-                    pdf.setFontSize(9);
-                    pdf.setTextColor(0, 94, 184);
-                    pdf.text(uebung.hashtags.join(' '), margin, yPosition);
-                    yPosition += 5;
+                for (var i = 0; i < uebungIds.length; i++) {
+                    if (!uebungIds[i]) continue;
+                    
+                    var uebungResult = await supabaseClient.from('uebungen').select('*').eq('id', uebungIds[i]).single();
+                    
+                    if (uebungResult.data) {
+                        var uebung = uebungResult.data;
+                        
+                        if (yPosition > 240) {
+                            pdf.addPage();
+                            yPosition = 20;
+                        }
+                        
+                        pdf.setFontSize(14);
+                        pdf.setTextColor(0, 94, 184);
+                        pdf.text('Übung ' + (i + 1), margin, yPosition);
+                        yPosition += 8;
+                        
+                        var img = await loadImageForPDF(uebung.bild_url);
+                        var imgHeight = (img.height / img.width) * imageWidth;
+                        
+                        if (imgHeight > 60) {
+                            imgHeight = 60;
+                        }
+                        
+                        pdf.addImage(img.src, 'JPEG', margin, yPosition, imageWidth, imgHeight);
+                        yPosition += imgHeight + 5;
+                        
+                        if (uebung.hashtags && uebung.hashtags.length > 0) {
+                            pdf.setFontSize(9);
+                            pdf.setTextColor(0, 94, 184);
+                            pdf.text(uebung.hashtags.join(' '), margin, yPosition);
+                            yPosition += 5;
+                        }
+                        
+                        yPosition += 10;
+                    }
                 }
                 
-                yPosition += 10;
+                var filename = aktuellerDetailPlan.titel.replace(/[^a-z0-9]/gi, '_') + '.pdf';
+                pdf.save(filename);
+                
+                button.textContent = '✓ PDF erstellt!';
+                setTimeout(function() {
+                    button.textContent = '📄 Als PDF exportieren';
+                    button.disabled = false;
+                }, 2000);
+                
+            } catch (err) {
+                alert('Fehler beim PDF-Export: ' + err.message);
+                button.textContent = '📄 Als PDF exportieren';
+                button.disabled = false;
             }
         }
-        
-        var filename = aktuellerDetailPlan.titel.replace(/[^a-z0-9]/gi, '_') + '.pdf';
-        pdf.save(filename);
-        
-        button.textContent = '✓ PDF erstellt!';
-        setTimeout(function() {
-            button.textContent = '📄 Als PDF exportieren';
-            button.disabled = false;
-        }, 2000);
-        
-    } catch (err) {
-        alert('Fehler beim PDF-Export: ' + err.message);
-        button.textContent = '📄 Als PDF exportieren';
-        button.disabled = false;
-    }
-}
 
-function loadImageForPDF(url) {
-    return new Promise(function(resolve, reject) {
-        var img = new Image();
-        img.crossOrigin = 'Anonymous';
-        img.onload = function() { resolve(img); };
-        img.onerror = reject;
-        img.src = url;
-    });
-}
+        function loadImageForPDF(url) {
+            return new Promise(function(resolve, reject) {
+                var img = new Image();
+                img.crossOrigin = 'Anonymous';
+                img.onload = function() { resolve(img); };
+                img.onerror = reject;
+                img.src = url;
+            });
+        }
 
         initSupabase();
     </script>
