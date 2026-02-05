@@ -1,0 +1,2627 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TVA Skaterhockey - Trainingsplan</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #005EB8;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        h1 {
+            color: #005EB8;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 2em;
+        }
+
+        .subtitle {
+            color: #FF3333;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+
+        h2 {
+            color: #005EB8;
+            margin: 30px 0 15px 0;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #FF3333;
+        }
+
+        .logo-container {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .logo {
+            max-width: 300px;
+            width: 100%;
+            height: auto;
+            display: block;
+            margin: 0 auto;
+        }
+
+        .mannschaft-auswahl {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .mannschaft-card {
+            background: linear-gradient(135deg, #005EB8 0%, #004494 100%);
+            color: white;
+            padding: 40px 20px;
+            border-radius: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 3px solid transparent;
+        }
+
+        .mannschaft-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            border-color: #FF3333;
+        }
+
+        .mannschaft-card h3 {
+            font-size: 1.5em;
+            margin-bottom: 10px;
+        }
+
+        .back-button {
+            background: #FF3333;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .tab {
+            padding: 12px 24px;
+            background: #f0f0f0;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+
+        .tab.active {
+            background: #005EB8;
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .spieler-liste {
+            display: grid;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .spieler-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            border-left: 4px solid #FF3333;
+        }
+
+        .spieler-info {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .spieler-name {
+            font-weight: bold;
+            font-size: 1.1em;
+            margin-bottom: 5px;
+            color: #005EB8;
+        }
+
+        .spieler-details {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .spieler-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+
+        .btn-primary {
+            background: #005EB8;
+            color: white;
+        }
+
+        .btn-success {
+            background: #FF3333;
+            color: white;
+        }
+
+        .btn-danger {
+            background: #FF3333;
+            color: white;
+        }
+
+        .btn-warning {
+            background: #FF6600;
+            color: white;
+        }
+
+        .btn-copy {
+            background: #25D366;
+            color: white;
+            font-size: 16px;
+            padding: 15px 30px;
+        }
+
+        .copy-success {
+            display: inline-block;
+            margin-left: 10px;
+            color: #FF3333;
+            font-weight: bold;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #005EB8;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            border-top: 5px solid #005EB8;
+        }
+
+        .modal-content.fullscreen {
+            max-width: 100%;
+            width: 100%;
+            height: 100vh;
+            max-height: 100vh;
+            border-radius: 0;
+            padding: 20px;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-header h3 {
+            color: #005EB8;
+        }
+
+        body.modal-open {
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 30px;
+            cursor: pointer;
+            color: #999;
+            line-height: 1;
+            padding: 0;
+        }
+
+        .abwesende-auswahl {
+            display: grid;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .checkbox-item {
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-left: 3px solid #005EB8;
+        }
+
+        .checkbox-item input[type="checkbox"] {
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+        }
+
+        .checkbox-item label {
+            cursor: pointer;
+            flex: 1;
+        }
+
+        .block-paar {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border: 2px solid #e0e0e0;
+        }
+
+        .paar-header {
+            background: linear-gradient(135deg, #005EB8 0%, #004494 100%);
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        .paar-info {
+            background: #FF6600;
+            color: white;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        .block {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            min-height: 100px;
+            border: 2px solid #e0e0e0;
+        }
+
+        .block.drag-over {
+            background: #e6f2ff;
+            border: 2px dashed #005EB8;
+        }
+
+        .block-header {
+            background: #FF3333;
+            color: white;
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .block-spieler {
+            padding: 10px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .block-spieler.draggable {
+            cursor: grab;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: none;
+        }
+
+        .block-spieler.dragging {
+            opacity: 0.4;
+            background: #e6f2ff;
+        }
+
+        .block-spieler:last-child {
+            border-bottom: none;
+        }
+
+        .drag-handle {
+            color: #999;
+            margin-right: 8px;
+            cursor: grab;
+        }
+
+        .block-anzahl {
+            font-weight: normal;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid;
+        }
+
+        .alert-info {
+            background: #e6f2ff;
+            color: #005EB8;
+            border-left-color: #005EB8;
+        }
+
+        .alert-warning {
+            background: #fff3e6;
+            color: #cc5200;
+            border-left-color: #FF6600;
+        }
+
+        .alert-danger {
+            background: #ffe6e6;
+            color: #cc0000;
+            border-left-color: #FF3333;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #005EB8;
+            font-size: 1.2em;
+        }
+
+        .copy-button-container {
+            text-align: center;
+            margin: 30px 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e6f2ff 100%);
+            border-radius: 10px;
+            border: 2px solid #005EB8;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .tabs-secondary {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 10px;
+        }
+
+        .tab-secondary {
+            padding: 10px 20px;
+            background: transparent;
+            border: none;
+            border-bottom: 3px solid transparent;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            color: #666;
+            transition: all 0.3s;
+        }
+
+        .tab-secondary.active {
+            color: #005EB8;
+            border-bottom-color: #005EB8;
+        }
+
+        .trainings-content {
+            display: none;
+        }
+
+        .trainings-content.active {
+            display: block;
+        }
+
+        .hashtag-filter {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border-left: 4px solid #005EB8;
+        }
+
+        .hashtag-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .hashtag-btn {
+            padding: 6px 12px;
+            background: white;
+            border: 2px solid #005EB8;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            color: #005EB8;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+
+        .hashtag-btn:hover {
+            background: #005EB8;
+            color: white;
+        }
+
+        .hashtag-btn.active {
+            background: #005EB8;
+            color: white;
+        }
+
+        .uebungen-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .uebung-card {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .uebung-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            border-color: #005EB8;
+        }
+
+        .uebung-card img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+
+        .uebung-card-content {
+            padding: 15px;
+        }
+
+        .uebung-card-hashtags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-top: 10px;
+        }
+
+        .uebung-hashtag {
+            padding: 4px 8px;
+            background: #e6f2ff;
+            color: #005EB8;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .uebung-card-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .uebung-card-actions button {
+            flex: 1;
+            padding: 8px;
+            font-size: 14px;
+        }
+
+        .upload-steps {
+            min-height: 400px;
+        }
+
+        .upload-step {
+            display: none;
+        }
+
+        .upload-step.active {
+            display: block;
+        }
+
+        .upload-area {
+            border: 3px dashed #005EB8;
+            border-radius: 15px;
+            padding: 40px;
+            text-align: center;
+            background: #f8f9fa;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .upload-area:hover {
+            background: #e6f2ff;
+            border-color: #FF3333;
+        }
+
+        .upload-area.drag-over {
+            background: #e6f2ff;
+            border-color: #FF3333;
+        }
+
+        .upload-placeholder {
+            color: #005EB8;
+        }
+
+        .canvas-container {
+            position: relative;
+            display: inline-block;
+            max-width: 100%;
+        }
+
+        .divider-line {
+            position: absolute;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: #FF3333;
+            cursor: ns-resize;
+            z-index: 10;
+        }
+
+        .divider-line::before {
+            content: '⬍';
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%) rotate(90deg);
+            background: #FF3333;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .divider-line:hover {
+            background: #cc0000;
+        }
+
+        .divider-line:hover::before {
+            background: #cc0000;
+        }
+
+        #preview-canvas, #adjust-canvas {
+            max-width: 100%;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            display: block;
+        }
+
+        .uebung-checkboxes {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .uebung-checkboxes label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+        .uebung-hashtag-form {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border-left: 4px solid #005EB8;
+        }
+
+        .uebung-hashtag-form h5 {
+            color: #005EB8;
+            margin-bottom: 15px;
+        }
+
+        .uebung-preview-small {
+            max-width: 100%;
+            width: 100%;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border: 2px solid #e0e0e0;
+        }
+
+        .hashtag-selection {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+
+        .hashtag-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 8px 12px;
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .hashtag-dropdown {
+            position: relative;
+            margin-bottom: 15px;
+        }
+
+        .hashtag-dropdown-toggle {
+            width: 100%;
+            padding: 12px;
+            background: white;
+            border: 2px solid #005EB8;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: left;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .hashtag-dropdown-content {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 2px solid #005EB8;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 5px;
+            z-index: 100;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .hashtag-dropdown-content.open {
+            display: block;
+        }
+
+        .hashtag-selection-compact {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+        }
+
+        .hashtag-checkbox-compact {
+            padding: 8px;
+            font-size: 14px;
+        }
+
+        .plan-builder-slots {
+            display: grid;
+            gap: 20px;
+        }
+
+        .plan-slot {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            border: 2px solid #e0e0e0;
+        }
+
+        .slot-header {
+            background: #005EB8;
+            color: white;
+            padding: 10px;
+            border-radius: 8px;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .uebung-select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            margin-bottom: 15px;
+        }
+
+        .uebung-preview {
+            min-height: 100px;
+        }
+
+        .uebung-preview img {
+            max-width: 100%;
+            border-radius: 8px;
+            border: 2px solid #e0e0e0;
+        }
+
+        .trainingsplaene-liste {
+            display: grid;
+            gap: 20px;
+        }
+
+        .trainingsplan-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 15px;
+            border: 2px solid #e0e0e0;
+            transition: all 0.3s;
+        }
+
+        .trainingsplan-card:hover {
+            border-color: #005EB8;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+
+        .trainingsplan-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .trainingsplan-titel {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #005EB8;
+        }
+
+        .trainingsplan-datum {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .trainingsplan-uebungen {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+        }
+
+        .trainingsplan-uebung-preview {
+            position: relative;
+        }
+
+        .trainingsplan-uebung-preview img {
+            width: 100%;
+            border-radius: 8px;
+            border: 2px solid #e0e0e0;
+        }
+
+        .trainingsplan-uebung-label {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: #005EB8;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .trainingsplan-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .plan-detail-uebungen {
+            display: grid;
+            gap: 30px;
+        }
+
+        .plan-detail-uebung {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 15px;
+            overflow: hidden;
+        }
+
+        .plan-detail-uebung-header {
+            background: #005EB8;
+            color: white;
+            padding: 15px;
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+
+        .plan-detail-uebung img {
+            width: 100%;
+            display: block;
+            cursor: zoom-in;
+        }
+
+        .plan-detail-uebung-info {
+            padding: 15px;
+            background: #f8f9fa;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+
+            h1 {
+                font-size: 1.5em;
+            }
+
+            .subtitle {
+                font-size: 1em;
+            }
+
+            .logo {
+                max-width: 200px;
+            }
+
+            .spieler-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .spieler-actions {
+                width: 100%;
+            }
+
+            .spieler-actions button {
+                flex: 1;
+            }
+
+            .uebungen-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="mannschafts-auswahl">
+            <div class="logo-container">
+                <img src="logo.jpg" alt="TVA Skaterhockey Logo" class="logo">
+            </div>
+            <div class="subtitle">Reihencreator</div>
+            <h2>Mannschaften</h2>
+            <div class="mannschaft-auswahl" id="mannschaft-liste">
+                <div class="loading">Lade Mannschaften...</div>
+            </div>
+        </div>
+
+        <div id="hauptanwendung" class="hidden">
+            <button class="back-button" onclick="zurueckZurAuswahl()">← Back</button>
+            
+            <div class="logo-container">
+                <img src="logo.jpg" alt="TVA Skaterhockey Logo" class="logo">
+            </div>
+            <div class="subtitle" id="aktuelle-mannschaft"></div>
+
+            <div class="tabs">
+                <button class="tab active" onclick="switchTab('spieler')">Spielerliste</button>
+                <button class="tab" onclick="switchTab('blockbildung')">Reihen</button>
+                <button class="tab" onclick="switchTab('trainingsplaene')">Trainingspläne</button>
+            </div>
+
+            <div id="spieler-tab" class="tab-content active">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+                    <h2 style="margin: 0; border: none;">Spielerliste</h2>
+                    <button class="btn-success" onclick="openAddSpielerModal()">+ Spieler</button>
+                </div>
+                <div id="spieler-liste" class="spieler-liste">
+                    <div class="loading">Lade Spielerliste...</div>
+                </div>
+            </div>
+
+            <div id="blockbildung-tab" class="tab-content">
+                <h2>Reihen</h2>
+                
+                <div class="alert alert-info">
+                    <strong>Info:</strong> Waehle abwesende Spieler aus
+                </div>
+
+                <button class="btn-primary" onclick="openAbwesendeModal()" style="margin-bottom: 20px;">
+                    Abwesende Spieler
+                </button>
+
+                <div id="abwesende-info" style="margin-bottom: 20px;"></div>
+
+                <button class="btn-success" onclick="erstelleBloecke()" style="margin-bottom: 20px;">
+                    Bloecke erstellen
+                </button>
+
+                <div id="whatsapp-button-container" style="display: none;" class="copy-button-container">
+                    <button class="btn-copy" onclick="kopiereFuerWhatsApp()">
+                        📱 Reihen für WhatsApp kopieren
+                    </button>
+                    <span id="copy-success" class="copy-success" style="display: none;">✓ Kopiert!</span>
+                </div>
+
+                <div id="ergebnis-container"></div>
+            </div>
+
+            <div id="trainingsplaene-tab" class="tab-content">
+                <h2>Trainingspläne</h2>
+                
+                <div class="tabs-secondary">
+                    <button class="tab-secondary active" onclick="switchTrainingsTab('uebungen')">Übungen verwalten</button>
+                    <button class="tab-secondary" onclick="switchTrainingsTab('plaene')">Trainingspläne</button>
+                </div>
+
+                <div id="uebungen-tab" class="trainings-content active">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin: 20px 0; flex-wrap: wrap; gap: 10px;">
+                        <h3 style="margin: 0;">Übungsbibliothek</h3>
+                        <button class="btn-success" onclick="openUploadModal()">+ Übungen hochladen</button>
+                    </div>
+
+                    <div class="hashtag-filter">
+                        <strong>Filtern nach:</strong>
+                        <div class="hashtag-buttons" id="filter-hashtags"></div>
+                        <button class="btn-primary" onclick="clearHashtagFilter()" style="margin-top: 10px;">Alle anzeigen</button>
+                    </div>
+
+                    <div id="uebungen-liste" class="uebungen-grid">
+                        <div class="loading">Lade Übungen...</div>
+                    </div>
+                </div>
+
+                <div id="plaene-tab" class="trainings-content">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin: 20px 0; flex-wrap: wrap; gap: 10px;">
+                        <h3 style="margin: 0;">Meine Trainingspläne</h3>
+                        <button class="btn-success" onclick="openPlanBuilder()">+ Neuer Trainingsplan</button>
+                    </div>
+
+                    <div id="trainingsplaene-liste" class="trainingsplaene-liste">
+                        <div class="loading">Lade Trainingspläne...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="spieler-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-title">Spieler hinzufuegen</h3>
+                <button class="close-btn" onclick="closeModal('spieler-modal')">&times;</button>
+            </div>
+            <form onsubmit="saveSpieler(); return false;">
+                <input type="hidden" id="edit-id" value="">
+                <div class="form-group">
+                    <label>Name:</label>
+                    <input type="text" id="spieler-name" required>
+                </div>
+                <div class="form-group">
+                    <label>Position:</label>
+                    <select id="spieler-position" required>
+                        <option value="Angreifer">Angreifer</option>
+                        <option value="Verteidiger">Verteidiger</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Staerke (0-10):</label>
+                    <input type="number" id="spieler-staerke" min="0" max="10" value="5" required>
+                </div>
+                <button type="submit" class="btn-success" style="width: 100%;">Speichern</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="abwesende-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Abwesende Spieler</h3>
+                <button class="close-btn" onclick="closeModal('abwesende-modal')">&times;</button>
+            </div>
+            <div id="abwesende-liste" class="abwesende-auswahl"></div>
+            <button class="btn-success" onclick="saveAbwesende()" style="width: 100%;">Bestaetigen</button>
+        </div>
+    </div>
+
+    <div id="upload-modal" class="modal">
+        <div class="modal-content fullscreen">
+            <div class="modal-header">
+                <h3>Übungen hochladen</h3>
+                <button class="close-btn" onclick="closeModal('upload-modal')">&times;</button>
+            </div>
+            
+            <div class="upload-steps">
+                <div id="upload-step-1" class="upload-step active">
+                    <h4>Schritt 1: Foto hochladen</h4>
+                    <div class="upload-area" id="upload-area">
+                        <input type="file" id="file-input" accept="image/*" style="display: none;">
+                        <div class="upload-placeholder" onclick="document.getElementById('file-input').click()">
+                            <div style="font-size: 48px; margin-bottom: 10px;">📸</div>
+                            <p><strong>Klicke hier</strong> oder ziehe ein Foto hinein</p>
+                            <p style="font-size: 0.9em; color: #666;">Trainingsplan mit 4 Übungen</p>
+                        </div>
+                        <canvas id="preview-canvas" style="max-width: 100%; display: none;"></canvas>
+                    </div>
+                    <button class="btn-primary" id="next-to-step-2" onclick="goToStep(2)" style="display: none; margin-top: 20px;">Weiter →</button>
+                </div>
+
+                <div id="upload-step-2" class="upload-step">
+                    <h4>Schritt 2: Übungsbereiche anpassen</h4>
+                    <p style="color: #666; margin-bottom: 15px;">
+                        🔴 <strong>Ziehe die roten Linien</strong>, um die Übungsbereiche anzupassen.<br>
+                        Deaktiviere nicht benötigte Übungen.
+                    </p>
+                    
+                    <div class="canvas-container" id="canvas-container">
+                        <canvas id="adjust-canvas" style="max-width: 100%;"></canvas>
+                    </div>
+
+                    <div class="uebung-checkboxes">
+                        <label><input type="checkbox" id="use-uebung-1" checked onchange="updateDividerVisibility()"> Übung 1 verwenden</label>
+                        <label><input type="checkbox" id="use-uebung-2" checked onchange="updateDividerVisibility()"> Übung 2 verwenden</label>
+                        <label><input type="checkbox" id="use-uebung-3" checked onchange="updateDividerVisibility()"> Übung 3 verwenden</label>
+                        <label><input type="checkbox" id="use-uebung-4" checked onchange="updateDividerVisibility()"> Übung 4 verwenden</label>
+                    </div>
+
+                    <div style="margin-top: 20px;">
+                        <button class="btn-warning" onclick="goToStep(1)">← Zurück</button>
+                        <button class="btn-primary" onclick="goToStep(3)">Weiter →</button>
+                    </div>
+                </div>
+
+                <div id="upload-step-3" class="upload-step">
+                    <h4>Schritt 3: Hashtags vergeben</h4>
+                    <div id="uebung-hashtag-forms"></div>
+                    <div style="margin-top: 20px;">
+                        <button class="btn-warning" onclick="goToStep(2)">← Zurück</button>
+                        <button class="btn-success" onclick="saveUebungen()">Übungen speichern</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="plan-builder-modal" class="modal">
+        <div class="modal-content" style="max-width: 1000px;">
+            <div class="modal-header">
+                <h3 id="plan-builder-title">Neuer Trainingsplan</h3>
+                <button class="close-btn" onclick="closeModal('plan-builder-modal')">&times;</button>
+            </div>
+            
+            <input type="hidden" id="edit-plan-id" value="">
+            
+            <div class="form-group">
+                <label>Titel:</label>
+                <input type="text" id="plan-titel" placeholder="z.B. Techniktraining 05.02.2026" required>
+            </div>
+            
+            <div class="form-group">
+                <label>Datum:</label>
+                <input type="date" id="plan-datum">
+            </div>
+
+            <h4 style="margin: 20px 0 10px 0;">Übungen auswählen</h4>
+
+            <div class="plan-builder-slots">
+                <div class="plan-slot">
+                    <div class="slot-header">Übung 1</div>
+                    <select id="uebung-select-1" class="uebung-select" onchange="updatePlanPreview(1)">
+                        <option value="">-- Keine Übung --</option>
+                    </select>
+                    <div id="uebung-preview-1" class="uebung-preview"></div>
+                </div>
+
+                <div class="plan-slot">
+                    <div class="slot-header">Übung 2</div>
+                    <select id="uebung-select-2" class="uebung-select" onchange="updatePlanPreview(2)">
+                        <option value="">-- Keine Übung --</option>
+                    </select>
+                    <div id="uebung-preview-2" class="uebung-preview"></div>
+                </div>
+
+                <div class="plan-slot">
+                    <div class="slot-header">Übung 3</div>
+                    <select id="uebung-select-3" class="uebung-select" onchange="updatePlanPreview(3)">
+                        <option value="">-- Keine Übung --</option>
+                    </select>
+                    <div id="uebung-preview-3" class="uebung-preview"></div>
+                </div>
+
+                <div class="plan-slot">
+                    <div class="slot-header">Übung 4</div>
+                    <select id="uebung-select-4" class="uebung-select" onchange="updatePlanPreview(4)">
+                        <option value="">-- Keine Übung --</option>
+                    </select>
+                    <div id="uebung-preview-4" class="uebung-preview"></div>
+                </div>
+            </div>
+
+            <button class="btn-success" onclick="saveTrainingsplan()" style="width: 100%; margin-top: 20px;">Trainingsplan speichern</button>
+        </div>
+    </div>
+
+    <div id="plan-detail-modal" class="modal">
+        <div class="modal-content fullscreen">
+            <div class="modal-header">
+                <h3 id="plan-detail-titel"></h3>
+                <button class="close-btn" onclick="closeModal('plan-detail-modal')">&times;</button>
+            </div>
+            
+            <div style="text-align: center; margin-bottom: 20px;">
+                <span id="plan-detail-datum" style="color: #666; font-size: 1.1em;"></span>
+            </div>
+
+            <div style="text-align: center; margin-bottom: 30px;">
+                <button class="btn-copy" onclick="exportPlanAsPDF()" style="background: #FF3333;">
+                    📄 Als PDF exportieren
+                </button>
+            </div>
+            
+            <div id="plan-detail-uebungen" class="plan-detail-uebungen"></div>
+        </div>
+    </div>
+
+    <script>
+        var supabaseClient = null;
+        var aktuellesMannschaftId = null;
+        var aktuellesMannschaftName = '';
+        var spielerListe = [];
+        var abwesendeSpieler = [];
+        var letzteErgebnisse = null;
+        var alleUebungen = [];
+        var alleTrainingsplaene = [];
+        var uploadedImage = null;
+        var verfuegbareHashtags = ['#Torschuss', '#Passen', '#Technik', '#Verteidigung', '#Kondition', '#1vs1', '#2vs2', '#3vs3', '#2vs1', '#3vs2', '#Überzahl', '#Unterzahl', '#Skating', '#Aufbau'];
+        var activeHashtagFilter = [];
+        var customDividers = [0.25, 0.5, 0.75]; // Prozentuale Positionen der Trennlinien
+        var dividerElements = [];
+        var isDraggingDivider = false;
+        var aktuellerDetailPlan = null;
+
+        function initSupabase() {
+            if (window.supabase && !supabaseClient) {
+                supabaseClient = window.supabase.createClient(
+                    'https://taqddhnkptncfyxjjakj.supabase.co',
+                    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRhcWRkaG5rcHRuY2Z5eGpqYWtqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk0MjQzOTEsImV4cCI6MjA4NTAwMDM5MX0.AROK1hnUFUms3bNPci-4L-sBK-1Wr_1hotsuOjWtxhA'
+                );
+                checkStorageSetup();
+                init();
+            } else if (!window.supabase) {
+                setTimeout(initSupabase, 100);
+            }
+        }
+
+        async function checkStorageSetup() {
+            try {
+                var buckets = await supabaseClient.storage.listBuckets();
+                var hasUebungsbilder = buckets.data && buckets.data.some(function(b) { return b.name === 'uebungsbilder'; });
+                
+                if (!hasUebungsbilder) {
+                    console.warn('⚠️ Storage-Bucket "uebungsbilder" nicht gefunden!');
+                }
+            } catch (err) {
+                console.error('Storage-Check fehlgeschlagen:', err);
+            }
+        }
+
+        async function init() {
+            await ladeMannschaften();
+        }
+
+        async function ladeMannschaften() {
+            try {
+                var result = await supabaseClient.from('mannschaften').select('*').order('name');
+                
+                if (result.error) {
+                    document.getElementById('mannschaft-liste').innerHTML = '<div class="alert alert-warning">Fehler: ' + result.error.message + '</div>';
+                    return;
+                }
+
+                if (!result.data || result.data.length === 0) {
+                    document.getElementById('mannschaft-liste').innerHTML = '<div class="alert alert-warning">Keine Mannschaften gefunden</div>';
+                    return;
+                }
+
+                var container = document.getElementById('mannschaft-liste');
+                container.innerHTML = '';
+
+                result.data.forEach(function(mannschaft) {
+                    var card = document.createElement('div');
+                    card.className = 'mannschaft-card';
+                    card.onclick = function() { waehlemMannschaft(mannschaft.id, mannschaft.name); };
+                    card.innerHTML = '<h3>🏒 ' + mannschaft.name + '</h3><p>Klicken zum Öffnen</p>';
+                    container.appendChild(card);
+                });
+            } catch (err) {
+                document.getElementById('mannschaft-liste').innerHTML = '<div class="alert alert-warning">Fehler: ' + err.message + '</div>';
+            }
+        }
+
+        async function waehlemMannschaft(id, name) {
+            aktuellesMannschaftId = id;
+            aktuellesMannschaftName = name;
+            
+            document.getElementById('mannschafts-auswahl').classList.add('hidden');
+            document.getElementById('hauptanwendung').classList.remove('hidden');
+            document.getElementById('aktuelle-mannschaft').textContent = name;
+            
+            await ladeSpieler();
+            updateAbwesendeInfo();
+        }
+
+        function zurueckZurAuswahl() {
+            document.getElementById('mannschafts-auswahl').classList.remove('hidden');
+            document.getElementById('hauptanwendung').classList.add('hidden');
+            aktuellesMannschaftId = null;
+            spielerListe = [];
+            abwesendeSpieler = [];
+        }
+
+        async function ladeSpieler() {
+            var result = await supabaseClient.from('spieler').select('*').eq('mannschaft_id', aktuellesMannschaftId).order('staerke', { ascending: false });
+            
+            if (result.error) {
+                return;
+            }
+
+            spielerListe = result.data || [];
+            renderSpielerListe();
+        }
+
+        function renderSpielerListe() {
+            var container = document.getElementById('spieler-liste');
+            container.innerHTML = '';
+
+            if (spielerListe.length === 0) {
+                container.innerHTML = '<div class="alert alert-info">Noch keine Spieler vorhanden. Füge den ersten Spieler hinzu!</div>';
+                return;
+            }
+
+            spielerListe.forEach(function(spieler) {
+                var item = document.createElement('div');
+                item.className = 'spieler-item';
+                item.innerHTML = '<div class="spieler-info"><div class="spieler-name">' + spieler.name + '</div><div class="spieler-details">' + spieler.position + ' | Staerke: ' + spieler.staerke + '</div></div><div class="spieler-actions"><button class="btn-warning" onclick="editSpieler(' + spieler.id + ')">Bearbeiten</button><button class="btn-danger" onclick="deleteSpieler(' + spieler.id + ')">Loeschen</button></div>';
+                container.appendChild(item);
+            });
+        }
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab').forEach(function(t) { 
+                t.classList.remove('active'); 
+            });
+            document.querySelectorAll('.tab-content').forEach(function(t) { 
+                t.classList.remove('active'); 
+            });
+            
+            if (event && event.target) {
+                event.target.classList.add('active');
+            }
+            
+            document.getElementById(tabName + '-tab').classList.add('active');
+            
+            if (tabName === 'trainingsplaene') {
+                setTimeout(function() {
+                    ladeUebungen();
+                    renderHashtagFilter();
+                }, 100);
+            }
+        }
+
+        function openAddSpielerModal() {
+            document.getElementById('modal-title').textContent = 'Spieler hinzufuegen';
+            document.getElementById('edit-id').value = '';
+            document.getElementById('spieler-name').value = '';
+            document.getElementById('spieler-position').value = 'Angreifer';
+            document.getElementById('spieler-staerke').value = '5';
+            document.getElementById('spieler-modal').classList.add('active');
+            document.body.classList.add('modal-open');
+        }
+
+        function editSpieler(id) {
+            var spieler = spielerListe.find(function(s) { return s.id === id; });
+            if (!spieler) return;
+
+            document.getElementById('modal-title').textContent = 'Spieler bearbeiten';
+            document.getElementById('edit-id').value = spieler.id;
+            document.getElementById('spieler-name').value = spieler.name;
+            document.getElementById('spieler-position').value = spieler.position;
+            document.getElementById('spieler-staerke').value = spieler.staerke;
+            document.getElementById('spieler-modal').classList.add('active');
+            document.body.classList.add('modal-open');
+        }
+
+        async function deleteSpieler(id) {
+            if (!confirm('Spieler wirklich loeschen?')) return;
+
+            var result = await supabaseClient.from('spieler').delete().eq('id', id);
+
+            if (result.error) {
+                alert('Fehler: ' + result.error.message);
+                return;
+            }
+
+            await ladeSpieler();
+        }
+
+        async function saveSpieler() {
+            var id = document.getElementById('edit-id').value;
+            var spieler = {
+                mannschaft_id: aktuellesMannschaftId,
+                name: document.getElementById('spieler-name').value,
+                position: document.getElementById('spieler-position').value,
+                staerke: parseInt(document.getElementById('spieler-staerke').value, 10)
+            };
+
+            var result;
+
+            if (id) {
+                result = await supabaseClient.from('spieler').update(spieler).eq('id', id);
+            } else {
+                result = await supabaseClient.from('spieler').insert([spieler]);
+            }
+
+            if (result.error) {
+                alert('Fehler: ' + result.error.message);
+                return;
+            }
+
+            closeModal('spieler-modal');
+            await ladeSpieler();
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+            document.body.classList.remove('modal-open');
+        }
+
+        function openAbwesendeModal() {
+            var container = document.getElementById('abwesende-liste');
+            document.body.classList.add('modal-open');
+            container.innerHTML = '';
+
+            spielerListe.forEach(function(spieler) {
+                var isChecked = abwesendeSpieler.indexOf(spieler.id) !== -1;
+                var item = document.createElement('div');
+                item.className = 'checkbox-item';
+                item.innerHTML = '<input type="checkbox" id="abw-' + spieler.id + '" ' + (isChecked ? 'checked' : '') + '><label for="abw-' + spieler.id + '">' + spieler.name + ' (' + spieler.position + ', ' + spieler.staerke + ')</label>';
+                container.appendChild(item);
+            });
+
+            document.getElementById('abwesende-modal').classList.add('active');
+        }
+
+        function saveAbwesende() {
+            abwesendeSpieler = [];
+            spielerListe.forEach(function(spieler) {
+                var checkbox = document.getElementById('abw-' + spieler.id);
+                if (checkbox && checkbox.checked) {
+                    abwesendeSpieler.push(spieler.id);
+                }
+            });
+            updateAbwesendeInfo();
+            closeModal('abwesende-modal');
+        }
+
+        function updateAbwesendeInfo() {
+            var container = document.getElementById('abwesende-info');
+            if (abwesendeSpieler.length === 0) {
+                container.innerHTML = '<div class="alert alert-info">Alle Spieler sind anwesend</div>';
+            } else {
+                var html = '<div class="alert alert-warning"><strong>Abwesende:</strong><br>';
+                abwesendeSpieler.forEach(function(id) {
+                    var spieler = spielerListe.find(function(s) { return s.id === id; });
+                    if (spieler) html += spieler.name + '<br>';
+                });
+                html += '</div>';
+                container.innerHTML = html;
+            }
+        }
+
+        function erstelleBloecke() {
+            var container = document.getElementById('ergebnis-container');
+            container.innerHTML = '<div class="loading">Erstelle Bloecke...</div>';
+
+            setTimeout(function() {
+                var anwesendeSpieler = spielerListe.filter(function(s) { return abwesendeSpieler.indexOf(s.id) === -1; });
+                
+                var angreifer = anwesendeSpieler.filter(function(s) { return s.position === 'Angreifer'; });
+                var verteidiger = anwesendeSpieler.filter(function(s) { return s.position === 'Verteidiger'; });
+                
+                if (anwesendeSpieler.length < 8) {
+                    container.innerHTML = '<div class="alert alert-warning">Mindestens 8 Spieler benötigt</div>';
+                    document.getElementById('whatsapp-button-container').style.display = 'none';
+                    return;
+                }
+                
+                if (angreifer.length < 4 || verteidiger.length < 4) {
+                    container.innerHTML = '<div class="alert alert-warning">Mindestens 4 Angreifer und 4 Verteidiger benötigt</div>';
+                    document.getElementById('whatsapp-button-container').style.display = 'none';
+                    return;
+                }
+
+                var ergebnis = erstelleAusgeglicheneBloecke(anwesendeSpieler, 3);
+                
+                if (!ergebnis || ergebnis.blockpaare.length === 0) {
+                    container.innerHTML = '<div class="alert alert-warning">Konnte keine Blöcke erstellen</div>';
+                    document.getElementById('whatsapp-button-container').style.display = 'none';
+                    return;
+                }
+
+                letzteErgebnisse = ergebnis;
+                renderBloecke();
+                document.getElementById('whatsapp-button-container').style.display = 'block';
+            }, 100);
+        }
+
+        function berechneGesamtstaerke(spielerArray) {
+            var sum = 0;
+            for (var i = 0; i < spielerArray.length; i++) {
+                sum += parseInt(spielerArray[i].staerke, 10);
+            }
+            return sum;
+        }
+
+        function renderBloecke() {
+            var container = document.getElementById('ergebnis-container');
+            var html = '';
+            var buchstaben = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
+            var aktuellerIndex = 0;
+
+            for (var i = 0; i < letzteErgebnisse.blockpaare.length; i++) {
+                var paar = letzteErgebnisse.blockpaare[i];
+                var staerke1 = berechneGesamtstaerke(paar[0]);
+                var staerke2 = berechneGesamtstaerke(paar[1]);
+                var differenz = Math.abs(staerke1 - staerke2);
+                
+                var blockName1 = buchstaben[aktuellerIndex];
+                var blockName2 = buchstaben[aktuellerIndex + 1];
+                aktuellerIndex += 2;
+
+                html += '<div class="block-paar"><div class="paar-header">PAAR ' + (i + 1) + ': Block ' + blockName1 + ' vs ' + blockName2 + '</div><div class="paar-info">Differenz: ' + differenz + ' | Gesamt: ' + (staerke1 + staerke2) + '</div>';
+                html += '<div class="block" data-block-id="' + blockName1 + '"><div class="block-header">Block ' + blockName1 + ' (<span class="block-staerke">' + staerke1 + '</span>) - ' + paar[0].length + ' Spieler</div>';
+                for (var j = 0; j < paar[0].length; j++) {
+                    html += '<div class="block-spieler draggable" draggable="true" data-spieler-id="' + paar[0][j].id + '" data-spieler-staerke="' + paar[0][j].staerke + '"><span class="drag-handle">☰</span> ' + paar[0][j].name + ' (' + paar[0][j].staerke + ')</div>';
+                }
+                html += '</div>';
+                html += '<div class="block" data-block-id="' + blockName2 + '"><div class="block-header">Block ' + blockName2 + ' (<span class="block-staerke">' + staerke2 + '</span>) - ' + paar[1].length + ' Spieler</div>';
+                for (var j = 0; j < paar[1].length; j++) {
+                    html += '<div class="block-spieler draggable" draggable="true" data-spieler-id="' + paar[1][j].id + '" data-spieler-staerke="' + paar[1][j].staerke + '"><span class="drag-handle">☰</span> ' + paar[1][j].name + ' (' + paar[1][j].staerke + ')</div>';
+                }
+                html += '</div></div>';
+            }
+
+            if (letzteErgebnisse.uebrigeSpieler.length > 0) {
+                var aufgeteilt = teileUebrigeSpieler(letzteErgebnisse.uebrigeSpieler);
+                var blockName = buchstaben[aktuellerIndex];
+                var staerke = berechneGesamtstaerke(aufgeteilt.block1);
+                html += '<div class="block-paar"><div class="paar-header">Block ' + blockName + '</div><div class="paar-info">Gesamtstaerke: ' + staerke + '</div><div class="block"><div class="block-header">Block ' + blockName + ' (' + staerke + ')</div>';
+                for (var j = 0; j < aufgeteilt.block1.length; j++) {
+                    html += '<div class="block-spieler">' + aufgeteilt.block1[j].name + ' (' + aufgeteilt.block1[j].staerke + ')</div>';
+                }
+                html += '</div></div>';
+            }
+
+            container.innerHTML = html;
+            initDragAndDrop();
+        }
+
+        function kopiereFuerWhatsApp() {
+            if (!letzteErgebnisse) return;
+
+            var text = aktuellesMannschaftName + ' - Trainingsblöcke\n\n';
+            var buchstaben = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
+            var aktuellerIndex = 0;
+
+            for (var i = 0; i < letzteErgebnisse.blockpaare.length; i++) {
+                var paar = letzteErgebnisse.blockpaare[i];
+                var blockName1 = buchstaben[aktuellerIndex];
+                var blockName2 = buchstaben[aktuellerIndex + 1];
+                aktuellerIndex += 2;
+                
+                text += 'Block ' + blockName1 + ': ';
+                for (var j = 0; j < paar[0].length; j++) {
+                    if (j > 0) text += ', ';
+                    text += paar[0][j].name;
+                }
+                text += '\n';
+                text += 'Block ' + blockName2 + ': ';
+                for (var j = 0; j < paar[1].length; j++) {
+                    if (j > 0) text += ', ';
+                    text += paar[1][j].name;
+                }
+                text += '\n\n';
+            }
+
+            if (letzteErgebnisse.uebrigeSpieler.length > 0) {
+                var blockName = buchstaben[aktuellerIndex];
+                text += 'Block ' + blockName + ': ';
+                for (var j = 0; j < letzteErgebnisse.uebrigeSpieler.length; j++) {
+                    if (j > 0) text += ', ';
+                    text += letzteErgebnisse.uebrigeSpieler[j].name;
+                }
+            }
+
+            var textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.style.position = 'fixed';
+            textarea.style.opacity = '0';
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+
+            var successMsg = document.getElementById('copy-success');
+            successMsg.style.display = 'inline-block';
+            setTimeout(function() { successMsg.style.display = 'none'; }, 3000);
+        }
+
+        function erstelleAusgeglicheneBloecke(spielerListe, anzahlPaare) {
+            var alleAngreifer = [];
+            var alleVerteidiger = [];
+            
+            for (var i = 0; i < spielerListe.length; i++) {
+                if (spielerListe[i].position === 'Angreifer') {
+                    alleAngreifer.push(spielerListe[i]);
+                } else {
+                    alleVerteidiger.push(spielerListe[i]);
+                }
+            }
+            
+            alleAngreifer.sort(function(a, b) { return b.staerke - a.staerke; });
+            alleVerteidiger.sort(function(a, b) { return b.staerke - a.staerke; });
+
+            var blockpaare = [];
+
+            for (var paar = 0; paar < anzahlPaare; paar++) {
+                if (alleAngreifer.length < 4 || alleVerteidiger.length < 4) break;
+
+                var verfuegbareAngreifer = alleAngreifer.slice(0, 4);
+                var verfuegbareVerteidiger = alleVerteidiger.slice(0, 4);
+
+                var besteBlock1 = null;
+                var besteBlock2 = null;
+                var besteDifferenz = 999;
+                var besteGesamtstaerke = -1;
+                var gefundenMitDiff3 = false;
+
+                for (var a1 = 0; a1 < 4; a1++) {
+                    for (var a2 = a1 + 1; a2 < 4; a2++) {
+                        for (var v1 = 0; v1 < 4; v1++) {
+                            for (var v2 = v1 + 1; v2 < 4; v2++) {
+                                var restAngreifer = [];
+                                var restVerteidiger = [];
+                                
+                                for (var x = 0; x < 4; x++) {
+                                    if (x !== a1 && x !== a2) restAngreifer.push(x);
+                                    if (x !== v1 && x !== v2) restVerteidiger.push(x);
+                                }
+
+                                var block1 = [verfuegbareAngreifer[a1], verfuegbareAngreifer[a2], verfuegbareVerteidiger[v1], verfuegbareVerteidiger[v2]];
+                                var block2 = [verfuegbareAngreifer[restAngreifer[0]], verfuegbareAngreifer[restAngreifer[1]], verfuegbareVerteidiger[restVerteidiger[0]], verfuegbareVerteidiger[restVerteidiger[1]]];
+
+                                var staerke1 = berechneGesamtstaerke(block1);
+                                var staerke2 = berechneGesamtstaerke(block2);
+                                var differenz = Math.abs(staerke1 - staerke2);
+                                var gesamtstaerke = staerke1 + staerke2;
+
+                                if (differenz <= 3) {
+                                    gefundenMitDiff3 = true;
+                                    if (gesamtstaerke > besteGesamtstaerke || (gesamtstaerke === besteGesamtstaerke && differenz < besteDifferenz)) {
+                                        besteBlock1 = block1;
+                                        besteBlock2 = block2;
+                                        besteDifferenz = differenz;
+                                        besteGesamtstaerke = gesamtstaerke;
+                                    }
+                                } else if (!gefundenMitDiff3 && differenz < besteDifferenz) {
+                                    besteBlock1 = block1;
+                                    besteBlock2 = block2;
+                                    besteDifferenz = differenz;
+                                    besteGesamtstaerke = gesamtstaerke;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if (besteBlock1 !== null) {
+                    blockpaare.push([besteBlock1, besteBlock2]);
+                    alleAngreifer.splice(0, 4);
+                    alleVerteidiger.splice(0, 4);
+                } else {
+                    break;
+                }
+            }
+
+            var uebrigeSpieler = alleAngreifer.concat(alleVerteidiger);
+            return { blockpaare: blockpaare, uebrigeSpieler: uebrigeSpieler };
+        }
+
+        function teileUebrigeSpieler(spielerListe) {
+            return { block1: spielerListe, block2: [] };
+        }
+
+        function initDragAndDrop() {
+            var draggables = document.querySelectorAll('.block-spieler.draggable');
+            var blocks = document.querySelectorAll('.block[data-block-id]');
+            var draggedElement = null;
+
+            draggables.forEach(function(elem) {
+                elem.addEventListener('dragstart', function(e) {
+                    draggedElement = this;
+                    this.classList.add('dragging');
+                    e.dataTransfer.effectAllowed = 'move';
+                    e.dataTransfer.setData('text/html', this.innerHTML);
+                });
+
+                elem.addEventListener('dragend', function(e) {
+                    this.classList.remove('dragging');
+                    var allBlocks = document.querySelectorAll('.block[data-block-id]');
+                    allBlocks.forEach(function(b) { b.classList.remove('drag-over'); });
+                    draggedElement = null;
+                });
+
+                var touchStartY, touchStartX, touchElement, isTouching;
+                
+                elem.addEventListener('touchstart', function(e) {
+                    touchElement = this;
+                    isTouching = false;
+                    var touch = e.touches[0];
+                    touchStartX = touch.clientX;
+                    touchStartY = touch.clientY;
+                });
+
+                elem.addEventListener('touchmove', function(e) {
+                    if (!touchElement) return;
+                    
+                    var touch = e.touches[0];
+                    var deltaX = Math.abs(touch.clientX - touchStartX);
+                    var deltaY = Math.abs(touch.clientY - touchStartY);
+                    
+                    if (deltaX > 10 || deltaY > 10) {
+                        e.preventDefault();
+                        isTouching = true;
+                        touchElement.classList.add('dragging');
+                        
+                        var elementAtPoint = document.elementFromPoint(touch.clientX, touch.clientY);
+                        if (elementAtPoint) {
+                            var targetBlock = elementAtPoint.closest('.block[data-block-id]');
+                            var allBlocks = document.querySelectorAll('.block[data-block-id]');
+                            allBlocks.forEach(function(b) { b.classList.remove('drag-over'); });
+                            if (targetBlock) targetBlock.classList.add('drag-over');
+                        }
+                    }
+                });
+
+                elem.addEventListener('touchend', function(e) {
+                    if (!touchElement) return;
+                    
+                    touchElement.classList.remove('dragging');
+                    
+                    if (isTouching) {
+                        var touch = e.changedTouches[0];
+                        var elementAtPoint = document.elementFromPoint(touch.clientX, touch.clientY);
+                        
+                        if (elementAtPoint) {
+                            var targetBlock = elementAtPoint.closest('.block[data-block-id]');
+                            var sourceBlock = touchElement.closest('.block[data-block-id]');
+                            
+                            if (targetBlock && sourceBlock && targetBlock !== sourceBlock) {
+                                targetBlock.querySelector('.block-header').insertAdjacentElement('afterend', touchElement);
+                                updateBlockStaerken();
+                            }
+                        }
+                    }
+                    
+                    var allBlocks = document.querySelectorAll('.block[data-block-id]');
+                    allBlocks.forEach(function(b) { b.classList.remove('drag-over'); });
+                    isTouching = false;
+                    touchElement = null;
+                });
+            });
+
+            blocks.forEach(function(block) {
+                block.addEventListener('dragover', function(e) {
+                    e.preventDefault();
+                    this.classList.add('drag-over');
+                    return false;
+                });
+
+                block.addEventListener('dragleave', function() {
+                    this.classList.remove('drag-over');
+                });
+
+                block.addEventListener('drop', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    this.classList.remove('drag-over');
+                    
+                    if (draggedElement && draggedElement.parentElement !== this) {
+                        this.querySelector('.block-header').insertAdjacentElement('afterend', draggedElement);
+                        updateBlockStaerken();
+                    }
+                    
+                    return false;
+                });
+            });
+        }
+
+        function updateBlockStaerken() {
+            var blocks = document.querySelectorAll('.block[data-block-id]');
+            blocks.forEach(function(block) {
+                var spieler = block.querySelectorAll('.block-spieler');
+                var sum = 0;
+                spieler.forEach(function(s) {
+                    var staerke = parseInt(s.getAttribute('data-spieler-staerke'), 10);
+                    sum += staerke;
+                });
+                var staerkeSpan = block.querySelector('.block-staerke');
+                if (staerkeSpan) staerkeSpan.textContent = sum;
+            });
+        }
+
+        function switchTrainingsTab(tabName) {
+            document.querySelectorAll('.tab-secondary').forEach(function(t) { 
+                t.classList.remove('active'); 
+            });
+            document.querySelectorAll('.trainings-content').forEach(function(t) { 
+                t.classList.remove('active'); 
+            });
+            
+            event.target.classList.add('active');
+            document.getElementById(tabName + '-tab').classList.add('active');
+            
+            if (tabName === 'uebungen') {
+                ladeUebungen();
+            } else if (tabName === 'plaene') {
+                ladeTrainingsplaene();
+            }
+        }
+
+        function openUploadModal() {
+            document.getElementById('upload-modal').classList.add('active');
+            document.body.classList.add('modal-open');
+            goToStep(1);
+            setupFileUpload();
+        }
+
+        function setupFileUpload() {
+            var fileInput = document.getElementById('file-input');
+            fileInput.onchange = function(e) {
+                if (e.target.files.length) handleFileSelect(e.target.files[0]);
+            };
+        }
+
+        function handleFileSelect(file) {
+            if (!file || !file.type.startsWith('image/')) {
+                alert('Bitte wähle eine Bilddatei aus!');
+                return;
+            }
+            
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                uploadedImage = new Image();
+                uploadedImage.onload = function() {
+                    showImagePreview(uploadedImage);
+                };
+                uploadedImage.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function showImagePreview(img) {
+            var canvas = document.getElementById('preview-canvas');
+            var ctx = canvas.getContext('2d');
+            
+            var maxWidth = 700;
+            var scale = Math.min(1, maxWidth / img.width);
+            canvas.width = img.width * scale;
+            canvas.height = img.height * scale;
+            
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            
+            document.querySelector('.upload-placeholder').style.display = 'none';
+            canvas.style.display = 'block';
+            document.getElementById('next-to-step-2').style.display = 'block';
+        }
+
+        function goToStep(stepNumber) {
+            document.querySelectorAll('.upload-step').forEach(function(step) {
+                step.classList.remove('active');
+            });
+            document.getElementById('upload-step-' + stepNumber).classList.add('active');
+            
+            if (stepNumber === 2) {
+                setupAdjustCanvas();
+            } else if (stepNumber === 3) {
+                setupHashtagForms();
+            }
+        }
+
+        function setupAdjustCanvas() {
+            if (!uploadedImage) return;
+            
+            var canvas = document.getElementById('adjust-canvas');
+            var ctx = canvas.getContext('2d');
+            
+            var maxWidth = 700;
+            var scale = Math.min(1, maxWidth / uploadedImage.width);
+            canvas.width = uploadedImage.width * scale;
+            canvas.height = uploadedImage.height * scale;
+            
+            ctx.drawImage(uploadedImage, 0, 0, canvas.width, canvas.height);
+            
+            // Trennlinien zurücksetzen
+            customDividers = [0.25, 0.5, 0.75];
+            createDividerLines();
+        }
+
+        function createDividerLines() {
+            var container = document.getElementById('canvas-container');
+            var canvas = document.getElementById('adjust-canvas');
+            
+            // Alte Linien entfernen
+            dividerElements.forEach(function(el) {
+                if (el.parentNode) el.parentNode.removeChild(el);
+            });
+            dividerElements = [];
+            
+            // Neue Linien erstellen
+            customDividers.forEach(function(pos, index) {
+                var line = document.createElement('div');
+                line.className = 'divider-line';
+                line.style.top = (pos * canvas.height) + 'px';
+                line.setAttribute('data-index', index);
+                
+                // Mouse Events
+                line.addEventListener('mousedown', startDragDivider);
+                
+                // Touch Events
+                line.addEventListener('touchstart', startDragDivider);
+                
+                container.appendChild(line);
+                dividerElements.push(line);
+            });
+            
+            updateDividerVisibility();
+        }
+
+        function startDragDivider(e) {
+            e.preventDefault();
+            isDraggingDivider = true;
+            var dividerIndex = parseInt(this.getAttribute('data-index'));
+            var canvas = document.getElementById('adjust-canvas');
+            
+            function onMove(e) {
+                if (!isDraggingDivider) return;
+                
+                var clientY = e.clientY || (e.touches && e.touches[0].clientY);
+                var rect = canvas.getBoundingClientRect();
+                var relativeY = clientY - rect.top;
+                var percentage = Math.max(0.05, Math.min(0.95, relativeY / canvas.height));
+                
+                customDividers[dividerIndex] = percentage;
+                customDividers.sort(function(a, b) { return a - b; });
+                
+                updateDividerPositions();
+            }
+            
+            function onEnd() {
+                isDraggingDivider = false;
+                document.removeEventListener('mousemove', onMove);
+                document.removeEventListener('mouseup', onEnd);
+                document.removeEventListener('touchmove', onMove);
+                document.removeEventListener('touchend', onEnd);
+            }
+            
+            document.addEventListener('mousemove', onMove);
+            document.addEventListener('mouseup', onEnd);
+            document.addEventListener('touchmove', onMove);
+            document.addEventListener('touchend', onEnd);
+        }
+
+        function updateDividerPositions() {
+            var canvas = document.getElementById('adjust-canvas');
+            dividerElements.forEach(function(line, index) {
+                line.style.top = (customDividers[index] * canvas.height) + 'px';
+                line.setAttribute('data-index', index);
+            });
+        }
+
+        function updateDividerVisibility() {
+            dividerElements.forEach(function(line, index) {
+                var checkbox = document.getElementById('use-uebung-' + (index + 2));
+                if (checkbox && !checkbox.checked) {
+                    line.style.display = 'none';
+                } else {
+                    line.style.display = 'block';
+                }
+            });
+        }
+
+        function setupHashtagForms() {
+            var container = document.getElementById('uebung-hashtag-forms');
+            container.innerHTML = '';
+            
+            for (var i = 1; i <= 4; i++) {
+                var checkbox = document.getElementById('use-uebung-' + i);
+                if (!checkbox.checked) continue;
+                
+                var uebungBild = getUebungImageCustom(i);
+                
+                var form = document.createElement('div');
+                form.className = 'uebung-hashtag-form';
+                form.setAttribute('data-uebung', i);
+                
+                var html = '<h5>Übung ' + i + '</h5>';
+                html += '<img src="' + uebungBild + '" class="uebung-preview-small" onclick="zoomImage(this.src)">';
+                
+                html += '<div class="hashtag-dropdown">';
+                html += '<button type="button" class="hashtag-dropdown-toggle" onclick="toggleHashtagDropdown(' + i + ')">';
+                html += '<span id="selected-tags-' + i + '">Hashtags auswählen (0)</span>';
+                html += '<span>▼</span>';
+                html += '</button>';
+                html += '<div class="hashtag-dropdown-content" id="hashtag-dropdown-' + i + '">';
+                html += '<div class="hashtag-selection-compact">';
+                
+                verfuegbareHashtags.forEach(function(tag) {
+                    html += '<label class="hashtag-checkbox">';
+                    html += '<input type="checkbox" name="hashtag-' + i + '" value="' + tag + '" onchange="updateSelectedCount(' + i + ')">';
+                    html += '<span>' + tag + '</span>';
+                    html += '</label>';
+                });
+                
+                html += '</div></div></div>';
+                html += '<div class="form-group"><label>Eigene Hashtags:</label><input type="text" id="custom-hashtags-' + i + '" placeholder="#MeinTag"></div>';
+                html += '<div class="form-group"><label>Notizen:</label><input type="text" id="notizen-' + i + '" placeholder="Übungsbeschreibung"></div>';
+                
+                form.innerHTML = html;
+                container.appendChild(form);
+            }
+        }
+
+        function getUebungImageCustom(index) {
+            var canvas = document.getElementById('adjust-canvas');
+            var tempCanvas = document.createElement('canvas');
+            var ctx = tempCanvas.getContext('2d');
+            
+            var positions = [0].concat(customDividers).concat([1]);
+            var startY = positions[index - 1] * canvas.height;
+            var endY = positions[index] * canvas.height;
+            var height = endY - startY;
+            
+            tempCanvas.width = canvas.width;
+            tempCanvas.height = height;
+            
+            ctx.drawImage(canvas, 0, startY, canvas.width, height, 0, 0, canvas.width, height);
+            
+            return tempCanvas.toDataURL('image/jpeg', 0.9);
+        }
+
+        function toggleHashtagDropdown(uebungNr) {
+            var dropdown = document.getElementById('hashtag-dropdown-' + uebungNr);
+            var isOpen = dropdown.classList.contains('open');
+            
+            document.querySelectorAll('.hashtag-dropdown-content').forEach(function(d) {
+                d.classList.remove('open');
+            });
+            
+            if (!isOpen) {
+                dropdown.classList.add('open');
+            }
+        }
+
+        function updateSelectedCount(uebungNr) {
+            var checkboxes = document.querySelectorAll('input[name="hashtag-' + uebungNr + '"]:checked');
+            var count = checkboxes.length;
+            var span = document.getElementById('selected-tags-' + uebungNr);
+            
+            if (count === 0) {
+                span.textContent = 'Hashtags auswählen (0)';
+            } else {
+                var tags = [];
+                checkboxes.forEach(function(cb) {
+                    tags.push(cb.value);
+                });
+                span.textContent = tags.slice(0, 3).join(' ') + (count > 3 ? ' +' + (count - 3) : '');
+            }
+        }
+
+        function zoomImage(src) {
+            var modal = document.createElement('div');
+            modal.className = 'modal active';
+            modal.onclick = function() {
+                document.body.removeChild(modal);
+            };
+            modal.innerHTML = '<div class="modal-content fullscreen" style="display: flex; align-items: center; justify-content: center;"><img src="' + src + '" style="max-width: 100%; max-height: 100%; object-fit: contain;"></div>';
+            document.body.appendChild(modal);
+        }
+
+        async function saveUebungen() {
+            var button = event.target;
+            button.disabled = true;
+            button.textContent = 'Speichere...';
+            
+            try {
+                var forms = document.querySelectorAll('.uebung-hashtag-form');
+                var savedCount = 0;
+                var errors = [];
+                
+                for (var i = 0; i < forms.length; i++) {
+                    var form = forms[i];
+                    var uebungIndex = parseInt(form.getAttribute('data-uebung'));
+                    
+                    try {
+                        var imageData = getUebungImageCustom(uebungIndex);
+                        var blob = dataURLtoBlob(imageData);
+                        var fileName = aktuellesMannschaftName.replace(/\s+/g, '_') + '_' + Date.now() + '_' + uebungIndex + '.jpg';
+                        
+                        // Upload mit besserem Error Handling
+                        var uploadResult = await supabaseClient.storage
+                            .from('uebungsbilder')
+                            .upload(fileName, blob, {
+                                contentType: 'image/jpeg',
+                                upsert: false
+                            });
+                        
+                        if (uploadResult.error) {
+                            errors.push('Upload Fehler (Übung ' + uebungIndex + '): ' + uploadResult.error.message);
+                            continue;
+                        }
+                        
+                        var publicURL = supabaseClient.storage
+                            .from('uebungsbilder')
+                            .getPublicUrl(fileName);
+                        
+                        if (!publicURL.data || !publicURL.data.publicUrl) {
+                            errors.push('Konnte URL nicht generieren für Übung ' + uebungIndex);
+                            continue;
+                        }
+                        
+                        var selectedHashtags = [];
+                        var checkboxes = form.querySelectorAll('input[name="hashtag-' + uebungIndex + '"]:checked');
+                        checkboxes.forEach(function(cb) {
+                            selectedHashtags.push(cb.value);
+                        });
+                        
+                        var customHashtags = document.getElementById('custom-hashtags-' + uebungIndex).value;
+                        if (customHashtags) {
+                            customHashtags.split(' ').forEach(function(tag) {
+                                if (tag.startsWith('#')) selectedHashtags.push(tag);
+                            });
+                        }
+                        
+                        var notizen = document.getElementById('notizen-' + uebungIndex).value;
+                        
+                        var insertResult = await supabaseClient.from('uebungen').insert([{
+                            bild_url: publicURL.data.publicUrl,
+                            hashtags: selectedHashtags,
+                            titel: notizen || 'Übung ' + uebungIndex,
+                            notizen: notizen
+                        }]);
+                        
+                        if (insertResult.error) {
+                            errors.push('Datenbank Fehler (Übung ' + uebungIndex + '): ' + insertResult.error.message);
+                            continue;
+                        }
+                        
+                        savedCount++;
+                        
+                    } catch (err) {
+                        errors.push('Fehler bei Übung ' + uebungIndex + ': ' + err.message);
+                    }
+                }
+                
+                if (errors.length > 0) {
+                    var errorContainer = document.createElement('div');
+                    errorContainer.className = 'alert alert-danger';
+                    errorContainer.innerHTML = '<strong>Fehler aufgetreten:</strong><br>' + errors.join('<br>');
+                    document.getElementById('upload-step-3').insertBefore(errorContainer, document.getElementById('uebung-hashtag-forms'));
+                }
+                
+                if (savedCount > 0) {
+                    alert('✓ ' + savedCount + ' Übung(en) gespeichert!' + (errors.length > 0 ? '\n\n⚠️ ' + errors.length + ' Fehler aufgetreten.' : ''));
+                    closeModal('upload-modal');
+                    ladeUebungen();
+                } else {
+                    alert('❌ Keine Übungen gespeichert.\n\n' + errors.join('\n'));
+                }
+                
+            } catch (err) {
+                alert('Kritischer Fehler: ' + err.message);
+            } finally {
+                button.disabled = false;
+                button.textContent = 'Übungen speichern';
+            }
+        }
+
+        function dataURLtoBlob(dataURL) {
+            var arr = dataURL.split(',');
+            var mime = arr[0].match(/:(.*?);/)[1];
+            var bstr = atob(arr[1]);
+            var n = bstr.length;
+            var u8arr = new Uint8Array(n);
+            while(n--) {
+                u8arr[n] = bstr.charCodeAt(n);
+            }
+            return new Blob([u8arr], {type: mime});
+        }
+
+        async function ladeUebungen() {
+            var container = document.getElementById('uebungen-liste');
+            container.innerHTML = '<div class="loading">Lade Übungen...</div>';
+            
+            renderHashtagFilter();
+            
+            try {
+                var query = supabaseClient.from('uebungen').select('*').order('created_at', { ascending: false });
+                
+                if (activeHashtagFilter.length > 0) {
+                    query = query.overlaps('hashtags', activeHashtagFilter);
+                }
+                
+                var result = await query;
+                
+                if (result.error) {
+                    container.innerHTML = '<div class="alert alert-warning">Fehler: ' + result.error.message + '</div>';
+                    return;
+                }
+                
+                alleUebungen = result.data || [];
+                
+                if (alleUebungen.length === 0) {
+                    container.innerHTML = '<div class="alert alert-info">Noch keine Übungen vorhanden!</div>';
+                    return;
+                }
+                
+                container.innerHTML = '';
+                
+                alleUebungen.forEach(function(uebung) {
+                    var card = document.createElement('div');
+                    card.className = 'uebung-card';
+                    
+                    var html = '<img src="' + uebung.bild_url + '" alt="Übung">';
+                    html += '<div class="uebung-card-content">';
+                    html += '<strong>' + (uebung.titel || 'Übung') + '</strong>';
+                    
+                    if (uebung.hashtags && uebung.hashtags.length > 0) {
+                        html += '<div class="uebung-card-hashtags">';
+                        uebung.hashtags.forEach(function(tag) {
+                            html += '<span class="uebung-hashtag">' + tag + '</span>';
+                        });
+                        html += '</div>';
+                    }
+                    
+                    html += '<div class="uebung-card-actions">';
+                    html += '<button class="btn-danger" onclick="deleteUebung(' + uebung.id + ')">Löschen</button>';
+                    html += '</div></div>';
+                    
+                    card.innerHTML = html;
+                    container.appendChild(card);
+                });
+                
+            } catch (err) {
+                container.innerHTML = '<div class="alert alert-warning">Fehler: ' + err.message + '</div>';
+            }
+        }
+
+        function renderHashtagFilter() {
+            var container = document.getElementById('filter-hashtags');
+            container.innerHTML = '';
+            
+            verfuegbareHashtags.forEach(function(tag) {
+                var btn = document.createElement('button');
+                btn.className = 'hashtag-btn';
+                btn.textContent = tag;
+                btn.onclick = function() {
+                    var index = activeHashtagFilter.indexOf(tag);
+                    if (index === -1) {
+                        activeHashtagFilter.push(tag);
+                        this.classList.add('active');
+                    } else {
+                        activeHashtagFilter.splice(index, 1);
+                        this.classList.remove('active');
+                    }
+                    ladeUebungen();
+                };
+                
+                if (activeHashtagFilter.indexOf(tag) !== -1) {
+                    btn.classList.add('active');
+                }
+                
+                container.appendChild(btn);
+            });
+        }
+
+        function clearHashtagFilter() {
+            activeHashtagFilter = [];
+            ladeUebungen();
+        }
+
+        async function deleteUebung(id) {
+            if (!confirm('Übung wirklich löschen?')) return;
+            var result = await supabaseClient.from('uebungen').delete().eq('id', id);
+            if (result.error) {
+                alert('Fehler: ' + result.error.message);
+                return;
+            }
+            ladeUebungen();
+        }
+
+        function openPlanBuilder() {
+            document.getElementById('plan-builder-modal').classList.add('active');
+            document.getElementById('plan-titel').value = '';
+            document.getElementById('plan-datum').value = '';
+            document.body.classList.add('modal-open');
+            ladeUebungenInSelects();
+        }
+
+        async function ladeUebungenInSelects() {
+            var result = await supabaseClient.from('uebungen').select('*').order('created_at', { ascending: false });
+            
+            if (result.error || !result.data) return;
+            
+            alleUebungen = result.data;
+            
+            for (var i = 1; i <= 4; i++) {
+                var select = document.getElementById('uebung-select-' + i);
+                select.innerHTML = '<option value="">-- Keine Übung --</option>';
+                
+                result.data.forEach(function(uebung) {
+                    var option = document.createElement('option');
+                    option.value = uebung.id;
+                    option.textContent = uebung.titel || 'Übung ' + uebung.id;
+                    select.appendChild(option);
+                });
+            }
+        }
+
+        function updatePlanPreview(slotNumber) {
+            var select = document.getElementById('uebung-select-' + slotNumber);
+            var preview = document.getElementById('uebung-preview-' + slotNumber);
+            var uebungId = parseInt(select.value);
+            
+            if (!uebungId) {
+                preview.innerHTML = '<p style="color: #999; text-align: center; padding: 20px;">Keine Übung</p>';
+                return;
+            }
+            
+            var uebung = alleUebungen.find(function(u) { return u.id === uebungId; });
+            
+            if (!uebung) {
+                preview.innerHTML = '';
+                return;
+            }
+            
+            preview.innerHTML = '<img src="' + uebung.bild_url + '" alt="Übung">';
+        }
+
+        async function saveTrainingsplan() {
+            var titel = document.getElementById('plan-titel').value;
+            var datum = document.getElementById('plan-datum').value;
+            
+            if (!titel) {
+                alert('Bitte Titel eingeben!');
+                return;
+            }
+            
+            var planData = {
+                mannschaft_id: aktuellesMannschaftId,
+                titel: titel,
+                datum: datum || null,
+                uebung1_id: document.getElementById('uebung-select-1').value || null,
+                uebung2_id: document.getElementById('uebung-select-2').value || null,
+                uebung3_id: document.getElementById('uebung-select-3').value || null,
+                uebung4_id: document.getElementById('uebung-select-4').value || null
+            };
+            
+            var result = await supabaseClient.from('trainingsplaene').insert([planData]);
+            
+            if (result.error) {
+                alert('Fehler: ' + result.error.message);
+                return;
+            }
+            
+            alert('✓ Trainingsplan gespeichert!');
+            closeModal('plan-builder-modal');
+            ladeTrainingsplaene();
+        }
+
+        async function ladeTrainingsplaene() {
+            var container = document.getElementById('trainingsplaene-liste');
+            container.innerHTML = '<div class="loading">Lade...</div>';
+            
+            try {
+                var result = await supabaseClient.from('trainingsplaene').select('*').eq('mannschaft_id', aktuellesMannschaftId).order('created_at', { ascending: false });
+                
+                if (result.error) {
+                    container.innerHTML = '<div class="alert alert-warning">Fehler: ' + result.error.message + '</div>';
+                    return;
+                }
+                
+                if (!result.data || result.data.length === 0) {
+                    container.innerHTML = '<div class="alert alert-info">Noch keine Trainingspläne!</div>';
+                    return;
+                }
+                
+                container.innerHTML = '';
+                
+                for (var i = 0; i < result.data.length; i++) {
+                    var card = await renderTrainingsplanCard(result.data[i]);
+                    container.appendChild(card);
+                }
+                
+            } catch (err) {
+                container.innerHTML = '<div class="alert alert-warning">Fehler: ' + err.message + '</div>';
+            }
+        }
+
+        async function renderTrainingsplanCard(plan) {
+            var card = document.createElement('div');
+            card.className = 'trainingsplan-card';
+            
+            var datum = plan.datum ? new Date(plan.datum).toLocaleDateString('de-DE') : 'Kein Datum';
+            
+            var html = '<div class="trainingsplan-header">';
+            html += '<div><div class="trainingsplan-titel">' + plan.titel + '</div>';
+            html += '<div class="trainingsplan-datum">' + datum + '</div></div></div>';
+            html += '<div class="trainingsplan-uebungen">';
+            
+            var uebungIds = [plan.uebung1_id, plan.uebung2_id, plan.uebung3_id, plan.uebung4_id];
+            
+            for (var i = 0; i < uebungIds.length; i++) {
+                if (uebungIds[i]) {
+                    var uebung = await supabaseClient.from('uebungen').select('*').eq('id', uebungIds[i]).single();
+                    if (uebung.data) {
+                        html += '<div class="trainingsplan-uebung-preview">';
+                        html += '<span class="trainingsplan-uebung-label">Übung ' + (i + 1) + '</span>';
+                        html += '<img src="' + uebung.data.bild_url + '">';
+                        html += '</div>';
+                    }
+                }
+            }
+            
+            html += '</div>';
+            html += '<div class="trainingsplan-actions">';
+            html += '<button class="btn-primary" onclick="showTrainingsplanDetail(' + plan.id + ')">📋 Anzeigen</button>';
+            html += '<button class="btn-danger" onclick="deleteTrainingsplan(' + plan.id + ')">Löschen</button>';
+            html += '</div>';
+            
+            card.innerHTML = html;
+            return card;
+        }
+
+        async function deleteTrainingsplan(id) {
+            if (!confirm('Trainingsplan löschen?')) return;
+            var result = await supabaseClient.from('trainingsplaene').delete().eq('id', id);
+            if (result.error) {
+                alert('Fehler: ' + result.error.message);
+                return;
+            }
+            ladeTrainingsplaene();
+        }
+
+        async function showTrainingsplanDetail(planId) {
+            try {
+                var result = await supabaseClient.from('trainingsplaene').select('*').eq('id', planId).single();
+                
+                if (result.error || !result.data) {
+                    alert('Fehler beim Laden');
+                    return;
+                }
+                
+                aktuellerDetailPlan = result.data;
+                
+                document.getElementById('plan-detail-titel').textContent = result.data.titel;
+                
+                var datum = result.data.datum ? new Date(result.data.datum).toLocaleDateString('de-DE') : 'Kein Datum';
+                document.getElementById('plan-detail-datum').textContent = datum;
+                
+                var container = document.getElementById('plan-detail-uebungen');
+                container.innerHTML = '<div class="loading">Lade Übungen...</div>';
+                
+                var uebungIds = [result.data.uebung1_id, result.data.uebung2_id, result.data.uebung3_id, result.data.uebung4_id];
+                var uebungenHTML = '';
+                
+                for (var i = 0; i < uebungIds.length; i++) {
+                    if (!uebungIds[i]) continue;
+                    
+                    var uebungResult = await supabaseClient.from('uebungen').select('*').eq('id', uebungIds[i]).single();
+                    
+                    if (uebungResult.data) {
+                        var uebung = uebungResult.data;
+                        uebungenHTML += '<div class="plan-detail-uebung">';
+                        uebungenHTML += '<div class="plan-detail-uebung-header">Übung ' + (i + 1) + (uebung.titel ? ' - ' + uebung.titel : '') + '</div>';
+                        uebungenHTML += '<img src="' + uebung.bild_url + '" alt="Übung ' + (i + 1) + '" onclick="zoomImage(\'' + uebung.bild_url + '\')">';
+                        
+                        if (uebung.hashtags && uebung.hashtags.length > 0) {
+                            uebungenHTML += '<div class="plan-detail-uebung-info">';
+                            uebungenHTML += '<strong>Tags:</strong> ';
+                            uebung.hashtags.forEach(function(tag) {
+                                uebungenHTML += '<span class="uebung-hashtag">' + tag + '</span> ';
+                            });
+                            uebungenHTML += '</div>';
+                        }
+                        
+                        uebungenHTML += '</div>';
+                    }
+                }
+                
+                container.innerHTML = uebungenHTML;
+                document.getElementById('plan-detail-modal').classList.add('active');
+                document.body.classList.add('modal-open');
+                
+            } catch (err) {
+                alert('Fehler: ' + err.message);
+            }
+        }
+
+        async function exportPlanAsPDF() {
+            if (!aktuellerDetailPlan) return;
+            
+            var button = event.target;
+            button.disabled = true;
+            button.textContent = '⏳ Erstelle PDF...';
+            
+            try {
+                var { jsPDF } = window.jspdf;
+                var pdf = new jsPDF('p', 'mm', 'a4');
+                
+                var pageWidth = 210;
+                var pageHeight = 297;
+                var margin = 15;
+                var imageWidth = pageWidth - (2 * margin);
+                
+                pdf.setFontSize(18);
+                pdf.setTextColor(0, 94, 184);
+                pdf.text(aktuellerDetailPlan.titel, pageWidth / 2, 20, { align: 'center' });
+                
+                var datum = aktuellerDetailPlan.datum ? new Date(aktuellerDetailPlan.datum).toLocaleDateString('de-DE') : '';
+                if (datum) {
+                    pdf.setFontSize(12);
+                    pdf.setTextColor(100, 100, 100);
+                    pdf.text(datum, pageWidth / 2, 28, { align: 'center' });
+                }
+                
+                var yPosition = 40;
+                var uebungIds = [aktuellerDetailPlan.uebung1_id, aktuellerDetailPlan.uebung2_id, aktuellerDetailPlan.uebung3_id, aktuellerDetailPlan.uebung4_id];
+                
+                for (var i = 0; i < uebungIds.length; i++) {
+                    if (!uebungIds[i]) continue;
+                    
+                    var uebungResult = await supabaseClient.from('uebungen').select('*').eq('id', uebungIds[i]).single();
+                    
+                    if (uebungResult.data) {
+                        var uebung = uebungResult.data;
+                        
+                        if (yPosition > 240) {
+                            pdf.addPage();
+                            yPosition = 20;
+                        }
+                        
+                        pdf.setFontSize(14);
+                        pdf.setTextColor(0, 94, 184);
+                        pdf.text('Übung ' + (i + 1), margin, yPosition);
+                        yPosition += 8;
+                        
+                        var img = await loadImageForPDF(uebung.bild_url);
+                        var imgHeight = (img.height / img.width) * imageWidth;
+                        
+                        if (imgHeight > 60) {
+                            imgHeight = 60;
+                        }
+                        
+                        pdf.addImage(img.src, 'JPEG', margin, yPosition, imageWidth, imgHeight);
+                        yPosition += imgHeight + 5;
+                        
+                        if (uebung.hashtags && uebung.hashtags.length > 0) {
+                            pdf.setFontSize(9);
+                            pdf.setTextColor(0, 94, 184);
+                            pdf.text(uebung.hashtags.join(' '), margin, yPosition);
+                            yPosition += 5;
+                        }
+                        
+                        yPosition += 10;
+                    }
+                }
+                
+                var filename = aktuellerDetailPlan.titel.replace(/[^a-z0-9]/gi, '_') + '.pdf';
+                pdf.save(filename);
+                
+                button.textContent = '✓ PDF erstellt!';
+                setTimeout(function() {
+                    button.textContent = '📄 Als PDF exportieren';
+                    button.disabled = false;
+                }, 2000);
+                
+            } catch (err) {
+                alert('Fehler beim PDF-Export: ' + err.message);
+                button.textContent = '📄 Als PDF exportieren';
+                button.disabled = false;
+            }
+        }
+
+        function loadImageForPDF(url) {
+            return new Promise(function(resolve, reject) {
+                var img = new Image();
+                img.crossOrigin = 'Anonymous';
+                img.onload = function() { resolve(img); };
+                img.onerror = reject;
+                img.src = url;
+            });
+        }
+
+        initSupabase();
+    </script>
+</body>
+</html>
