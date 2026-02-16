@@ -241,6 +241,14 @@
             font-size: 16px;
         }
 
+        .form-group input:required:invalid {
+            border-color: #FF3333;
+        }
+
+        .form-group input:required:valid {
+            border-color: #76B82A;
+        }
+
         .modal {
             display: none;
             position: fixed;
@@ -957,6 +965,32 @@
             background: #f8f9fa;
         }
 
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e6f2ff 100%);
+            border-radius: 15px;
+            border: 2px dashed #005EB8;
+        }
+
+        .empty-state-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .empty-state h3 {
+            color: #005EB8;
+            margin-bottom: 10px;
+            font-size: 1.5em;
+        }
+
+        .empty-state p {
+            color: #666;
+            font-size: 1.1em;
+            line-height: 1.6;
+        }
+
         @media (max-width: 768px) {
             .container {
                 padding: 15px;
@@ -1081,13 +1115,16 @@
                     </div>
 
                     <div class="hashtag-filter">
-                        <strong>Filtern nach:</strong>
+                        <strong>🔍 Filtern nach Hashtags:</strong>
                         <div class="hashtag-buttons" id="filter-hashtags"></div>
-                        <button class="btn-primary" onclick="clearHashtagFilter()" style="margin-top: 10px;">Alle anzeigen</button>
                     </div>
 
                     <div id="uebungen-liste" class="uebungen-grid">
-                        <div class="loading">Lade Übungen...</div>
+                        <div class="empty-state">
+                            <div class="empty-state-icon">🏒</div>
+                            <h3>Wähle einen Hashtag-Filter aus</h3>
+                            <p>Nutze die Filter oben, um Übungen anzuzeigen.<br>Oder lade neue Übungen hoch!</p>
+                        </div>
                     </div>
                 </div>
 
@@ -1193,7 +1230,7 @@
                 </div>
 
                 <div id="upload-step-3" class="upload-step">
-                    <h4>Schritt 3: Hashtags vergeben</h4>
+                    <h4>Schritt 3: Namen und Hashtags vergeben</h4>
                     <div id="uebung-hashtag-forms"></div>
                     <div style="margin-top: 20px;">
                         <button class="btn-warning" onclick="goToStep(2)">← Zurück</button>
@@ -1418,7 +1455,7 @@
             
             if (tabName === 'trainingsplaene') {
                 setTimeout(function() {
-                    ladeUebungen();
+                    showInitialUebungenState();
                     renderHashtagFilter();
                 }, 100);
             }
@@ -1888,7 +1925,7 @@
             document.getElementById(tabName + '-tab').classList.add('active');
             
             if (tabName === 'uebungen') {
-                ladeUebungen();
+                showInitialUebungenState();
             } else if (tabName === 'plaene') {
                 ladeTrainingsplaene();
             }
@@ -2117,6 +2154,8 @@
                 var html = '<h5>' + uebungColors[i-1].label + '</h5>';
                 html += '<img src="' + uebungBild + '" class="uebung-preview-small" onclick="zoomImage(this.src)">';
                 
+                html += '<div class="form-group"><label>Name der Übung: <span style="color: #FF3333;">*</span></label><input type="text" id="uebungsname-' + i + '" placeholder="z.B. 2 gegen 1 Abschluss" required></div>';
+                
                 html += '<div class="hashtag-dropdown">';
                 html += '<button type="button" class="hashtag-dropdown-toggle" onclick="toggleHashtagDropdown(' + i + ')">';
                 html += '<span id="selected-tags-' + i + '">Hashtags auswählen (0)</span>';
@@ -2133,8 +2172,7 @@
                 });
                 
                 html += '</div></div></div>';
-                html += '<div class="form-group"><label>Eigene Hashtags:</label><input type="text" id="custom-hashtags-' + i + '" placeholder="#MeinTag"></div>';
-                html += '<div class="form-group"><label>Notizen:</label><input type="text" id="notizen-' + i + '" placeholder="Übungsbeschreibung"></div>';
+                html += '<div class="form-group"><label>Eigene Hashtags (optional):</label><input type="text" id="custom-hashtags-' + i + '" placeholder="#MeinTag"></div>';
                 
                 form.innerHTML = html;
                 container.appendChild(form);
@@ -2200,12 +2238,25 @@
         }
 
         async function saveUebungen() {
+            var forms = document.querySelectorAll('.uebung-hashtag-form');
+            
+            for (var i = 0; i < forms.length; i++) {
+                var form = forms[i];
+                var uebungIndex = parseInt(form.getAttribute('data-uebung'));
+                var nameField = document.getElementById('uebungsname-' + uebungIndex);
+                
+                if (!nameField.value.trim()) {
+                    alert('Bitte gib einen Namen für ' + uebungColors[uebungIndex-1].label + ' ein!');
+                    nameField.focus();
+                    return;
+                }
+            }
+            
             var button = event.target;
             button.disabled = true;
             button.textContent = 'Speichere...';
             
             try {
-                var forms = document.querySelectorAll('.uebung-hashtag-form');
                 var savedCount = 0;
                 var errors = [];
                 
@@ -2252,13 +2303,13 @@
                             });
                         }
                         
-                        var notizen = document.getElementById('notizen-' + uebungIndex).value;
+                        var uebungsname = document.getElementById('uebungsname-' + uebungIndex).value.trim();
                         
                         var insertResult = await supabaseClient.from('uebungen').insert([{
                             bild_url: publicURL.data.publicUrl,
                             hashtags: selectedHashtags,
-                            titel: notizen || 'Übung ' + uebungIndex,
-                            notizen: notizen
+                            titel: uebungsname,
+                            notizen: uebungsname
                         }]);
                         
                         if (insertResult.error) {
@@ -2283,7 +2334,7 @@
                 if (savedCount > 0) {
                     alert('✓ ' + savedCount + ' Übung(en) gespeichert!' + (errors.length > 0 ? '\n\n⚠️ ' + errors.length + ' Fehler aufgetreten.' : ''));
                     closeModal('upload-modal');
-                    ladeUebungen();
+                    showInitialUebungenState();
                 } else {
                     alert('❌ Keine Übungen gespeichert.\n\n' + errors.join('\n'));
                 }
@@ -2308,11 +2359,21 @@
             return new Blob([u8arr], {type: mime});
         }
 
+        function showInitialUebungenState() {
+            var container = document.getElementById('uebungen-liste');
+            
+            if (activeHashtagFilter.length === 0) {
+                container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🏒</div><h3>Wähle einen Hashtag-Filter aus</h3><p>Nutze die Filter oben, um Übungen anzuzeigen.<br>Oder lade neue Übungen hoch!</p></div>';
+            } else {
+                ladeUebungen();
+            }
+            
+            renderHashtagFilter();
+        }
+
         async function ladeUebungen() {
             var container = document.getElementById('uebungen-liste');
             container.innerHTML = '<div class="loading">Lade Übungen...</div>';
-            
-            renderHashtagFilter();
             
             try {
                 var query = supabaseClient.from('uebungen').select('*').order('created_at', { ascending: false });
@@ -2331,7 +2392,7 @@
                 alleUebungen = result.data || [];
                 
                 if (alleUebungen.length === 0) {
-                    container.innerHTML = '<div class="alert alert-info">Noch keine Übungen vorhanden!</div>';
+                    container.innerHTML = '<div class="alert alert-info">Keine Übungen mit den ausgewählten Hashtags gefunden!</div>';
                     return;
                 }
                 
@@ -2383,7 +2444,12 @@
                         activeHashtagFilter.splice(index, 1);
                         this.classList.remove('active');
                     }
-                    ladeUebungen();
+                    
+                    if (activeHashtagFilter.length > 0) {
+                        ladeUebungen();
+                    } else {
+                        showInitialUebungenState();
+                    }
                 };
                 
                 if (activeHashtagFilter.indexOf(tag) !== -1) {
@@ -2396,7 +2462,7 @@
 
         function clearHashtagFilter() {
             activeHashtagFilter = [];
-            ladeUebungen();
+            showInitialUebungenState();
         }
 
         async function deleteUebung(id) {
