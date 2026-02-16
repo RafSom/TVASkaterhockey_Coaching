@@ -743,6 +743,7 @@
             border-radius: 8px;
             margin-bottom: 15px;
             border: 2px solid #e0e0e0;
+            cursor: zoom-in;
         }
 
         .hashtag-selection {
@@ -2107,7 +2108,7 @@
                 var checkbox = document.getElementById('use-uebung-' + i);
                 if (!checkbox.checked) continue;
                 
-                var uebungBild = getUebungImageCustom(i);
+                var uebungBild = getUebungImageFromOriginal(i);
                 
                 var form = document.createElement('div');
                 form.className = 'uebung-hashtag-form';
@@ -2140,22 +2141,23 @@
             }
         }
 
-        function getUebungImageCustom(index) {
-            var canvas = document.getElementById('adjust-canvas');
+        function getUebungImageFromOriginal(index) {
+            if (!uploadedImage) return '';
+            
             var tempCanvas = document.createElement('canvas');
             var ctx = tempCanvas.getContext('2d');
             
             var positions = [0].concat(customDividers).concat([1]);
-            var startY = positions[index - 1] * canvas.height;
-            var endY = positions[index] * canvas.height;
+            var startY = positions[index - 1] * uploadedImage.height;
+            var endY = positions[index] * uploadedImage.height;
             var height = endY - startY;
             
-            tempCanvas.width = canvas.width;
+            tempCanvas.width = uploadedImage.width;
             tempCanvas.height = height;
             
-            ctx.drawImage(canvas, 0, startY, canvas.width, height, 0, 0, canvas.width, height);
+            ctx.drawImage(uploadedImage, 0, startY, uploadedImage.width, height, 0, 0, uploadedImage.width, height);
             
-            return tempCanvas.toDataURL('image/jpeg', 0.9);
+            return tempCanvas.toDataURL('image/jpeg', 0.95);
         }
 
         function toggleHashtagDropdown(uebungNr) {
@@ -2212,7 +2214,7 @@
                     var uebungIndex = parseInt(form.getAttribute('data-uebung'));
                     
                     try {
-                        var imageData = getUebungImageCustom(uebungIndex);
+                        var imageData = getUebungImageFromOriginal(uebungIndex);
                         var blob = dataURLtoBlob(imageData);
                         var fileName = aktuellesMannschaftName.replace(/\s+/g, '_') + '_' + Date.now() + '_' + uebungIndex + '.jpg';
                         
@@ -2339,7 +2341,7 @@
                     var card = document.createElement('div');
                     card.className = 'uebung-card';
                     
-                    var html = '<img src="' + uebung.bild_url + '" alt="Übung">';
+                    var html = '<img src="' + uebung.bild_url + '" alt="Übung" onclick="zoomImage(\'' + uebung.bild_url + '\')">';
                     html += '<div class="uebung-card-content">';
                     html += '<strong>' + (uebung.titel || 'Übung') + '</strong>';
                     
