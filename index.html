@@ -626,19 +626,24 @@
             position: relative;
             display: inline-block;
             max-width: 100%;
+            margin: 20px auto;
+        }
+
+        .canvas-wrapper {
+            text-align: center;
         }
 
         .divider-line {
             position: absolute;
             left: 0;
-            right: 0;
-            height: 3px;
+            height: 4px;
             background: #FF3333;
             cursor: ns-resize;
-            z-index: 10;
+            z-index: 20;
+            box-shadow: 0 0 5px rgba(0,0,0,0.3);
         }
 
-        .divider-line::before {
+        .divider-line::after {
             content: '⬍';
             position: absolute;
             left: 50%;
@@ -646,18 +651,41 @@
             transform: translate(-50%, -50%) rotate(90deg);
             background: #FF3333;
             color: white;
-            padding: 5px 10px;
-            border-radius: 5px;
-            font-size: 14px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
             font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
         }
 
         .divider-line:hover {
             background: #cc0000;
+            height: 6px;
         }
 
-        .divider-line:hover::before {
+        .divider-line:hover::after {
             background: #cc0000;
+        }
+
+        .uebung-overlay {
+            position: absolute;
+            left: 0;
+            right: 0;
+            pointer-events: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+        }
+
+        .uebung-overlay-label {
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 18px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
         }
 
         #preview-canvas, #adjust-canvas {
@@ -958,7 +986,7 @@
             <div class="logo-container">
                 <img src="logo.jpg" alt="TVA Skaterhockey Logo" class="logo">
             </div>
-            <div class="subtitle">Coaching Tool</div>
+            <div class="subtitle">Reihencreator</div>
             <h2>Mannschaften</h2>
             <div class="mannschaft-auswahl" id="mannschaft-liste">
                 <div class="loading">Lade Mannschaften...</div>
@@ -1119,19 +1147,21 @@
                 <div id="upload-step-2" class="upload-step">
                     <h4>Schritt 2: Übungsbereiche anpassen</h4>
                     <p style="color: #666; margin-bottom: 15px;">
-                        🔴 <strong>Ziehe die roten Linien</strong>, um die Übungsbereiche anzupassen.<br>
-                        Deaktiviere nicht benötigte Übungen.
+                        🎨 <strong>Ziehe die roten Linien</strong>, um die Übungsbereiche anzupassen.<br>
+                        Farbige Bereiche zeigen: 🔴 Übung 1 | 🟡 Übung 2 | 🔵 Übung 3 | 🟢 Übung 4
                     </p>
                     
-                    <div class="canvas-container" id="canvas-container">
-                        <canvas id="adjust-canvas" style="max-width: 100%;"></canvas>
+                    <div class="canvas-wrapper">
+                        <div class="canvas-container" id="canvas-container">
+                            <canvas id="adjust-canvas"></canvas>
+                        </div>
                     </div>
 
                     <div class="uebung-checkboxes">
-                        <label><input type="checkbox" id="use-uebung-1" checked onchange="updateDividerVisibility()"> Übung 1 verwenden</label>
-                        <label><input type="checkbox" id="use-uebung-2" checked onchange="updateDividerVisibility()"> Übung 2 verwenden</label>
-                        <label><input type="checkbox" id="use-uebung-3" checked onchange="updateDividerVisibility()"> Übung 3 verwenden</label>
-                        <label><input type="checkbox" id="use-uebung-4" checked onchange="updateDividerVisibility()"> Übung 4 verwenden</label>
+                        <label><input type="checkbox" id="use-uebung-1" checked onchange="updateOverlays()"> Übung 1 verwenden</label>
+                        <label><input type="checkbox" id="use-uebung-2" checked onchange="updateOverlays()"> Übung 2 verwenden</label>
+                        <label><input type="checkbox" id="use-uebung-3" checked onchange="updateOverlays()"> Übung 3 verwenden</label>
+                        <label><input type="checkbox" id="use-uebung-4" checked onchange="updateOverlays()"> Übung 4 verwenden</label>
                     </div>
 
                     <div style="margin-top: 20px;">
@@ -1244,10 +1274,18 @@
         var uploadedImage = null;
         var verfuegbareHashtags = ['#Torschuss', '#Passen', '#Technik', '#Verteidigung', '#Kondition', '#1vs1', '#2vs2', '#3vs3', '#2vs1', '#3vs2', '#Überzahl', '#Unterzahl', '#Skating', '#Aufbau'];
         var activeHashtagFilter = [];
-        var customDividers = [0.25, 0.5, 0.75]; // Prozentuale Positionen der Trennlinien
+        var customDividers = [0.25, 0.5, 0.75];
         var dividerElements = [];
+        var overlayElements = [];
         var isDraggingDivider = false;
         var aktuellerDetailPlan = null;
+
+        var uebungColors = [
+            { bg: 'rgba(255, 51, 51, 0.3)', label: 'Übung 1' },    // Rot
+            { bg: 'rgba(255, 193, 7, 0.3)', label: 'Übung 2' },    // Gelb
+            { bg: 'rgba(33, 150, 243, 0.3)', label: 'Übung 3' },   // Blau
+            { bg: 'rgba(76, 175, 80, 0.3)', label: 'Übung 4' }     // Grün
+        ];
 
         function initSupabase() {
             if (window.supabase && !supabaseClient) {
@@ -1255,13 +1293,11 @@
                     'https://taqddhnkptncfyxjjakj.supabase.co',
                     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRhcWRkaG5rcHRuY2Z5eGpqYWtqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk0MjQzOTEsImV4cCI6MjA4NTAwMDM5MX0.AROK1hnUFUms3bNPci-4L-sBK-1Wr_1hotsuOjWtxhA'
                 );
-                //checkStorageSetup();
                 init();
             } else if (!window.supabase) {
                 setTimeout(initSupabase, 100);
             }
         }
-
 
         async function init() {
             await ladeMannschaften();
@@ -1909,39 +1945,62 @@
             
             ctx.drawImage(uploadedImage, 0, 0, canvas.width, canvas.height);
             
-            // Trennlinien zurücksetzen
             customDividers = [0.25, 0.5, 0.75];
             createDividerLines();
+            createOverlays();
         }
 
         function createDividerLines() {
             var container = document.getElementById('canvas-container');
             var canvas = document.getElementById('adjust-canvas');
             
-            // Alte Linien entfernen
             dividerElements.forEach(function(el) {
                 if (el.parentNode) el.parentNode.removeChild(el);
             });
             dividerElements = [];
             
-            // Neue Linien erstellen
             customDividers.forEach(function(pos, index) {
                 var line = document.createElement('div');
                 line.className = 'divider-line';
+                line.style.width = canvas.width + 'px';
                 line.style.top = (pos * canvas.height) + 'px';
                 line.setAttribute('data-index', index);
                 
-                // Mouse Events
                 line.addEventListener('mousedown', startDragDivider);
-                
-                // Touch Events
                 line.addEventListener('touchstart', startDragDivider, { passive: false });
                 
                 container.appendChild(line);
                 dividerElements.push(line);
             });
+        }
+
+        function createOverlays() {
+            var container = document.getElementById('canvas-container');
+            var canvas = document.getElementById('adjust-canvas');
             
-            updateDividerVisibility();
+            overlayElements.forEach(function(el) {
+                if (el.parentNode) el.parentNode.removeChild(el);
+            });
+            overlayElements = [];
+            
+            var positions = [0].concat(customDividers).concat([1]);
+            
+            for (var i = 0; i < 4; i++) {
+                var overlay = document.createElement('div');
+                overlay.className = 'uebung-overlay';
+                overlay.style.width = canvas.width + 'px';
+                overlay.style.top = (positions[i] * canvas.height) + 'px';
+                overlay.style.height = ((positions[i + 1] - positions[i]) * canvas.height) + 'px';
+                overlay.style.background = uebungColors[i].bg;
+                
+                var label = document.createElement('div');
+                label.className = 'uebung-overlay-label';
+                label.textContent = uebungColors[i].label;
+                overlay.appendChild(label);
+                
+                container.appendChild(overlay);
+                overlayElements.push(overlay);
+            }
         }
 
         function startDragDivider(e) {
@@ -1949,19 +2008,20 @@
             isDraggingDivider = true;
             var dividerIndex = parseInt(this.getAttribute('data-index'));
             var canvas = document.getElementById('adjust-canvas');
+            var canvasRect = canvas.getBoundingClientRect();
             
             function onMove(e) {
                 if (!isDraggingDivider) return;
                 
                 var clientY = e.clientY || (e.touches && e.touches[0].clientY);
-                var rect = canvas.getBoundingClientRect();
-                var relativeY = clientY - rect.top;
+                var relativeY = clientY - canvasRect.top;
                 var percentage = Math.max(0.05, Math.min(0.95, relativeY / canvas.height));
                 
                 customDividers[dividerIndex] = percentage;
                 customDividers.sort(function(a, b) { return a - b; });
                 
                 updateDividerPositions();
+                updateOverlays();
             }
             
             function onEnd() {
@@ -1974,7 +2034,7 @@
             
             document.addEventListener('mousemove', onMove);
             document.addEventListener('mouseup', onEnd);
-            document.addEventListener('touchmove', onMove);
+            document.addEventListener('touchmove', onMove, { passive: false });
             document.addEventListener('touchend', onEnd);
         }
 
@@ -1986,10 +2046,24 @@
             });
         }
 
-        function updateDividerVisibility() {
-            dividerElements.forEach(function(line, index) {
-                var checkbox = document.getElementById('use-uebung-' + (index + 2));
+        function updateOverlays() {
+            var canvas = document.getElementById('adjust-canvas');
+            var positions = [0].concat(customDividers).concat([1]);
+            
+            overlayElements.forEach(function(overlay, index) {
+                var checkbox = document.getElementById('use-uebung-' + (index + 1));
                 if (checkbox && !checkbox.checked) {
+                    overlay.style.display = 'none';
+                } else {
+                    overlay.style.display = 'flex';
+                    overlay.style.top = (positions[index] * canvas.height) + 'px';
+                    overlay.style.height = ((positions[index + 1] - positions[index]) * canvas.height) + 'px';
+                }
+            });
+            
+            dividerElements.forEach(function(line, index) {
+                var nextCheckbox = document.getElementById('use-uebung-' + (index + 2));
+                if (nextCheckbox && !nextCheckbox.checked) {
                     line.style.display = 'none';
                 } else {
                     line.style.display = 'block';
@@ -2011,7 +2085,7 @@
                 form.className = 'uebung-hashtag-form';
                 form.setAttribute('data-uebung', i);
                 
-                var html = '<h5>Übung ' + i + '</h5>';
+                var html = '<h5>' + uebungColors[i-1].label + '</h5>';
                 html += '<img src="' + uebungBild + '" class="uebung-preview-small" onclick="zoomImage(this.src)">';
                 
                 html += '<div class="hashtag-dropdown">';
@@ -2114,7 +2188,6 @@
                         var blob = dataURLtoBlob(imageData);
                         var fileName = aktuellesMannschaftName.replace(/\s+/g, '_') + '_' + Date.now() + '_' + uebungIndex + '.jpg';
                         
-                        // Upload mit besserem Error Handling
                         var uploadResult = await supabaseClient.storage
                             .from('uebungsbilder')
                             .upload(fileName, blob, {
@@ -2608,23 +2681,6 @@
                 img.src = url;
             });
         }
-
-async function pruefeObUebungVerwendetWird(uebungId) {
-    const { data, error } = await supabaseClient
-        .from('trainingsplaene')
-        .select('*')
-        .or(`uebung1_id.eq.${uebungId},uebung2_id.eq.${uebungId},uebung3_id.eq.${uebungId}`);
-    return data && data.length > 0;
-}
-
-async function loescheUebung(uebungId) {
-    const verwendet = await pruefeObUebungVerwendetWird(uebungId);
-    if (verwendet) {
-        alert('Übung wird noch in Trainingsplan verwendet!');
-        return;
-    }
-    // ... sonst löschen
-}
 
         initSupabase();
     </script>
