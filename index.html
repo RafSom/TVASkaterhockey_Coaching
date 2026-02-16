@@ -1042,7 +1042,7 @@
             <div class="logo-container">
                 <img src="logo.jpg" alt="TVA Skaterhockey Logo" class="logo">
             </div>
-            <div class="subtitle">Reihencreator</div>
+            <div class="subtitle">Coaching Tool</div>
             <h2>Mannschaften</h2>
             <div class="mannschaft-auswahl" id="mannschaft-liste">
                 <div class="loading">Lade Mannschaften...</div>
@@ -1058,23 +1058,13 @@
             <div class="subtitle" id="aktuelle-mannschaft"></div>
 
             <div class="tabs">
-                <button class="tab active" onclick="switchTab('spieler')">Spielerliste</button>
-                <button class="tab" onclick="switchTab('blockbildung')">Reihen</button>
+                <button class="tab active" onclick="switchTab('blockbildung')">Reihencreator</button>
                 <button class="tab" onclick="switchTab('trainingsplaene')">Trainingspläne</button>
+                <button class="tab" onclick="switchTab('spieler')">Spielerliste</button>
             </div>
 
-            <div id="spieler-tab" class="tab-content active">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
-                    <h2 style="margin: 0; border: none;">Spielerliste</h2>
-                    <button class="btn-success" onclick="openAddSpielerModal()">+ Spieler</button>
-                </div>
-                <div id="spieler-liste" class="spieler-liste">
-                    <div class="loading">Lade Spielerliste...</div>
-                </div>
-            </div>
-
-            <div id="blockbildung-tab" class="tab-content">
-                <h2>Reihen</h2>
+            <div id="blockbildung-tab" class="tab-content active">
+                <h2>Reihencreator</h2>
                 
                 <div class="alert alert-info">
                     <strong>Info:</strong> Waehle abwesende Spieler aus
@@ -1104,14 +1094,14 @@
                 <h2>Trainingspläne</h2>
                 
                 <div class="tabs-secondary">
-                    <button class="tab-secondary active" onclick="switchTrainingsTab('uebungen')">Übungen verwalten</button>
+                    <button class="tab-secondary active" onclick="switchTrainingsTab('uebungen')">Übungen</button>
                     <button class="tab-secondary" onclick="switchTrainingsTab('plaene')">Trainingspläne</button>
                 </div>
 
                 <div id="uebungen-tab" class="trainings-content active">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin: 20px 0; flex-wrap: wrap; gap: 10px;">
                         <h3 style="margin: 0;">Übungsbibliothek</h3>
-                        <button class="btn-success" onclick="openUploadModal()">+ Übungen hochladen</button>
+                        <button class="btn-success" onclick="openUploadModal()">+ Trainingsplan Upload</button>
                     </div>
 
                     <div class="hashtag-filter">
@@ -1137,6 +1127,16 @@
                     <div id="trainingsplaene-liste" class="trainingsplaene-liste">
                         <div class="loading">Lade Trainingspläne...</div>
                     </div>
+                </div>
+            </div>
+
+            <div id="spieler-tab" class="tab-content">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+                    <h2 style="margin: 0; border: none;">Spielerliste</h2>
+                    <button class="btn-success" onclick="openAddSpielerModal()">+ Spieler</button>
+                </div>
+                <div id="spieler-liste" class="spieler-liste">
+                    <div class="loading">Lade Spielerliste...</div>
                 </div>
             </div>
         </div>
@@ -1184,7 +1184,7 @@
     <div id="upload-modal" class="modal">
         <div class="modal-content fullscreen">
             <div class="modal-header">
-                <h3>Übungen hochladen</h3>
+                <h3>Trainingsplan Upload</h3>
                 <button class="close-btn" onclick="closeModal('upload-modal')">&times;</button>
             </div>
             
@@ -1346,6 +1346,8 @@
             { bg: 'rgba(76, 175, 80, 0.3)', label: 'Übung 4' }
         ];
 
+        var mannschaftsReihenfolge = ['Bambini', 'Schüler', 'Jugend', 'Junioren'];
+
         function initSupabase() {
             if (window.supabase && !supabaseClient) {
                 supabaseClient = window.supabase.createClient(
@@ -1364,7 +1366,7 @@
 
         async function ladeMannschaften() {
             try {
-                var result = await supabaseClient.from('mannschaften').select('*').order('name');
+                var result = await supabaseClient.from('mannschaften').select('*');
                 
                 if (result.error) {
                     document.getElementById('mannschaft-liste').innerHTML = '<div class="alert alert-warning">Fehler: ' + result.error.message + '</div>';
@@ -1376,10 +1378,20 @@
                     return;
                 }
 
+                var sortedData = result.data.sort(function(a, b) {
+                    var indexA = mannschaftsReihenfolge.indexOf(a.name);
+                    var indexB = mannschaftsReihenfolge.indexOf(b.name);
+                    
+                    if (indexA === -1) indexA = 999;
+                    if (indexB === -1) indexB = 999;
+                    
+                    return indexA - indexB;
+                });
+
                 var container = document.getElementById('mannschaft-liste');
                 container.innerHTML = '';
 
-                result.data.forEach(function(mannschaft) {
+                sortedData.forEach(function(mannschaft) {
                     var card = document.createElement('div');
                     card.className = 'mannschaft-card';
                     card.onclick = function() { waehlemMannschaft(mannschaft.id, mannschaft.name); };
