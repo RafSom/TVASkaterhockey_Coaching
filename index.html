@@ -1262,18 +1262,20 @@
             }
         }
 
-        async function checkStorageSetup() {
-            try {
-                var buckets = await supabaseClient.storage.listBuckets();
-                var hasUebungsbilder = buckets.data && buckets.data.some(function(b) { return b.name === 'uebungsbilder'; });
-                
-                if (!hasUebungsbilder) {
-                    console.warn('⚠️ Storage-Bucket "uebungsbilder" nicht gefunden!');
-                }
-            } catch (err) {
-                console.error('Storage-Check fehlgeschlagen:', err);
-            }
+async function checkStorageSetup() {
+    try {
+        var buckets = await supabaseClient.storage.listBuckets();
+        var hasUebungsbilder = buckets.data && buckets.data.some(function(b) { return b.name === 'uebungsbilder'; });
+        
+        if (hasUebungsbilder) {
+            console.log('✅ Storage-Bucket "uebungsbilder" gefunden!');
+        } else {
+            console.error('❌ Storage-Bucket "uebungsbilder" nicht gefunden! Bitte erstellen.');
         }
+    } catch (err) {
+        console.error('❌ Storage-Check fehlgeschlagen:', err);
+    }
+}
 
         async function init() {
             await ladeMannschaften();
