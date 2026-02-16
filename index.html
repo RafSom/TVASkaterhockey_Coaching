@@ -1255,27 +1255,13 @@
                     'https://taqddhnkptncfyxjjakj.supabase.co',
                     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRhcWRkaG5rcHRuY2Z5eGpqYWtqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk0MjQzOTEsImV4cCI6MjA4NTAwMDM5MX0.AROK1hnUFUms3bNPci-4L-sBK-1Wr_1hotsuOjWtxhA'
                 );
-                checkStorageSetup();
+                //checkStorageSetup();
                 init();
             } else if (!window.supabase) {
                 setTimeout(initSupabase, 100);
             }
         }
 
-async function checkStorageSetup() {
-    try {
-        var buckets = await supabaseClient.storage.listBuckets();
-        var hasUebungsbilder = buckets.data && buckets.data.some(function(b) { return b.name === 'uebungsbilder'; });
-        
-        if (hasUebungsbilder) {
-            console.log('✅ Storage-Bucket "uebungsbilder" gefunden!');
-        } else {
-            console.error('❌ Storage-Bucket "uebungsbilder" nicht gefunden! Bitte erstellen.');
-        }
-    } catch (err) {
-        console.error('❌ Storage-Check fehlgeschlagen:', err);
-    }
-}
 
         async function init() {
             await ladeMannschaften();
@@ -1949,7 +1935,7 @@ async function checkStorageSetup() {
                 line.addEventListener('mousedown', startDragDivider);
                 
                 // Touch Events
-                line.addEventListener('touchstart', startDragDivider);
+                line.addEventListener('touchstart', startDragDivider, { passive: false });
                 
                 container.appendChild(line);
                 dividerElements.push(line);
