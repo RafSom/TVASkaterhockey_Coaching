@@ -1688,11 +1688,11 @@ function kopiereFuerWhatsApp() {
             
             var spielerNamen = [];
             spieler.forEach(function(spielerElement) {
-                // Extrahiere Namen aus dem Text (entferne "☰" und "(Stärke)")
                 var volltext = spielerElement.textContent.trim();
-                var name = volltext.replace('☰', '').trim();
-                // Entferne Stärke in Klammern am Ende
-                name = name.replace(/\s*$$\d+$$\s*$/, '').trim();
+                // Entferne das Drag-Handle "☰"
+                volltext = volltext.replace('☰', '').trim();
+                // Entferne alles ab der ersten Klammer (inkl. Stärke)
+                var name = volltext.split('(')[0].trim();
                 spielerNamen.push(name);
             });
             
