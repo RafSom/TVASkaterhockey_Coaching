@@ -2071,59 +2071,72 @@ function initDragAndDrop() {
             }, 100);
         }
 
-        function createDividerLines() {
-            var container = document.getElementById('canvas-container');
-            var canvas = document.getElementById('adjust-canvas');
-            
-            dividerElements.forEach(function(el) {
-                if (el.parentNode) el.parentNode.removeChild(el);
-            });
-            dividerElements = [];
-            
-            var canvasRect = canvas.getBoundingClientRect();
-            
-            customDividers.forEach(function(pos, index) {
-                var line = document.createElement('div');
-                line.className = 'divider-line';
-                line.style.top = (pos * canvasRect.height) + 'px';
-                line.setAttribute('data-index', index);
-                
-                line.addEventListener('mousedown', startDragDivider);
-                line.addEventListener('touchstart', startDragDivider, { passive: false });
-                
-                container.appendChild(line);
-                dividerElements.push(line);
-            });
-        }
-
+function createDividerLines() {
+    var container = document.getElementById('canvas-container');
+    var canvas = document.getElementById('adjust-canvas');
+    
+    dividerElements.forEach(function(el) {
+        if (el.parentNode) el.parentNode.removeChild(el);
+    });
+    dividerElements = [];
+    
+    var canvasRect = canvas.getBoundingClientRect();
+    
+    // ✅ NEU: Für jede aktive Übung (außer der letzten) eine Linie
+    for (var i = 1; i <= 3; i++) { // Übung 1, 2, 3 haben Linien (Übung 4 geht bis 100%)
+        var checkbox = document.getElementById('use-uebung-' + i);
+        if (!checkbox.checked) continue; // Nur wenn Übung aktiv
+        
+        var line = document.createElement('div');
+        line.className = 'divider-line';
+        line.style.top = (customDividers[i-1] * canvasRect.height) + 'px';
+        line.setAttribute('data-index', i-1);
+        line.setAttribute('data-uebung', i); // ✅ Welche Übung diese Linie gehört
+        
+        line.addEventListener('mousedown', startDragDivider);
+        line.addEventListener('touchstart', startDragDivider, { passive: false });
+        
+        container.appendChild(line);
+        dividerElements.push(line);
+    }
+}
         function createOverlays() {
-            var container = document.getElementById('canvas-container');
-            var canvas = document.getElementById('adjust-canvas');
-            
-            overlayElements.forEach(function(el) {
-                if (el.parentNode) el.parentNode.removeChild(el);
-            });
-            overlayElements = [];
-            
-            var canvasRect = canvas.getBoundingClientRect();
-            var positions = [0].concat(customDividers).concat([1]);
-            
-            for (var i = 0; i < 4; i++) {
-                var overlay = document.createElement('div');
-                overlay.className = 'uebung-overlay';
-                overlay.style.top = (positions[i] * canvasRect.height) + 'px';
-                overlay.style.height = ((positions[i + 1] - positions[i]) * canvasRect.height) + 'px';
-                overlay.style.background = uebungColors[i].bg;
-                
-                var label = document.createElement('div');
-                label.className = 'uebung-overlay-label';
-                label.textContent = uebungColors[i].label;
-                overlay.appendChild(label);
-                
-                container.appendChild(overlay);
-                overlayElements.push(overlay);
-            }
-        }
+    var container = document.getElementById('canvas-container');
+    var canvas = document.getElementById('adjust-canvas');
+    
+    overlayElements.forEach(function(el) {
+        if (el.parentNode) el.parentNode.removeChild(el);
+    });
+    overlayElements = [];
+    
+    var canvasRect = canvas.getBoundingClientRect();
+    var positions = [0].concat(customDividers).concat([1]);
+    
+    for (var i = 0; i < 4; i++) {
+        var checkbox = document.getElementById('use-uebung-' + (i + 1));
+        if (!checkbox.checked) continue; // Nur aktive Übungen
+        
+        var overlay = document.createElement('div');
+        overlay.className = 'uebung-overlay';
+        overlay.style.top = (positions[i] * canvasRect.height) + 'px';
+        overlay.style.height = ((positions[i + 1] - positions[i]) * canvasRect.height) + 'px';
+        overlay.style.background = uebungColors[i].bg;
+        
+        var label = document.createElement('div');
+        label.className = 'uebung-overlay-label';
+        label.textContent = uebungColors[i].label;
+        overlay.appendChild(label);
+        
+        container.appendChild(overlay);
+        overlayElements.push(overlay);
+    }
+}
+
+// ✅ NEU: Beim Checkbox-Toggle Linien neu erstellen
+function updateOverlays() {
+    createDividerLines(); // ✅ Linien neu erstellen
+    createOverlays();
+}
 
         function startDragDivider(e) {
             e.preventDefault();
@@ -2197,46 +2210,79 @@ function initDragAndDrop() {
         }
 
         function setupHashtagForms() {
-            var container = document.getElementById('uebung-hashtag-forms');
-            container.innerHTML = '';
-            
-            for (var i = 1; i <= 4; i++) {
-                var checkbox = document.getElementById('use-uebung-' + i);
-                if (!checkbox.checked) continue;
-                
-                var uebungBild = getUebungImageFromOriginal(i);
-                
-                var form = document.createElement('div');
-                form.className = 'uebung-hashtag-form';
-                form.setAttribute('data-uebung', i);
-                
-                var html = '<h5>' + uebungColors[i-1].label + '</h5>';
-                html += '<img src="' + uebungBild + '" class="uebung-preview-small" onclick="zoomImage(this.src)">';
-                
-                html += '<div class="form-group"><label>Name der Übung: <span style="color: #FF3333;">*</span></label><input type="text" id="uebungsname-' + i + '" placeholder="z.B. 2 gegen 1 Abschluss" required></div>';
-                
-                html += '<div class="hashtag-dropdown">';
-                html += '<button type="button" class="hashtag-dropdown-toggle" onclick="toggleHashtagDropdown(' + i + ')">';
-                html += '<span id="selected-tags-' + i + '">Hashtags auswählen (0)</span>';
-                html += '<span>▼</span>';
-                html += '</button>';
-                html += '<div class="hashtag-dropdown-content" id="hashtag-dropdown-' + i + '">';
-                html += '<div class="hashtag-selection-compact">';
-                
-                verfuegbareHashtags.forEach(function(tag) {
-                    html += '<label class="hashtag-checkbox">';
-                    html += '<input type="checkbox" name="hashtag-' + i + '" value="' + tag + '" onchange="updateSelectedCount(' + i + ')">';
-                    html += '<span>' + tag + '</span>';
-                    html += '</label>';
-                });
-                
-                html += '</div></div></div>';
-                html += '<div class="form-group"><label>Eigene Hashtags (optional):</label><input type="text" id="custom-hashtags-' + i + '" placeholder="#MeinTag"></div>';
-                
-                form.innerHTML = html;
-                container.appendChild(form);
-            }
-        }
+    var container = document.getElementById('uebung-hashtag-forms');
+    container.innerHTML = '';
+    
+    for (var i = 1; i <= 4; i++) {
+        var checkbox = document.getElementById('use-uebung-' + i);
+        if (!checkbox.checked) continue;
+        
+        var uebungBild = getUebungImageFromOriginal(i);
+        
+        var form = document.createElement('div');
+        form.className = 'uebung-hashtag-form';
+        form.setAttribute('data-uebung', i);
+        form.setAttribute('id', 'form-uebung-' + i); // ✅ ID für einfaches Entfernen
+        
+        // ✅ NEU: Header mit X-Button
+        var html = '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">';
+        html += '<h5 style="margin: 0;">' + uebungColors[i-1].label + '</h5>';
+        html += '<button type="button" class="close-btn" onclick="removeUebungFromUpload(' + i + ')" style="font-size: 24px; color: #FF3333;">&times;</button>';
+        html += '</div>';
+        
+        html += '<img src="' + uebungBild + '" class="uebung-preview-small" onclick="zoomImage(this.src)">';
+        
+        html += '<div style="margin: 15px 0;">';
+        html += '<button type="button" class="btn-primary" onclick="suggestHashtagsWithAI(' + i + ', \'' + uebungBild + '\')" id="ai-suggest-btn-' + i + '">';
+        html += '🤖 Hashtags von KI vorschlagen';
+        html += '</button>';
+        html += '<span id="ai-loading-' + i + '" style="display: none; margin-left: 10px; color: #005EB8;">⏳ Analysiere...</span>';
+        html += '</div>';
+        
+        html += '<div class="form-group"><label>Name der Übung: <span style="color: #FF3333;">*</span></label><input type="text" id="uebungsname-' + i + '" placeholder="z.B. 2 gegen 1 Abschluss" required></div>';
+        
+        html += '<div class="hashtag-dropdown">';
+        html += '<button type="button" class="hashtag-dropdown-toggle" onclick="toggleHashtagDropdown(' + i + ')">';
+        html += '<span id="selected-tags-' + i + '">Hashtags auswählen (0)</span>';
+        html += '<span>▼</span>';
+        html += '</button>';
+        html += '<div class="hashtag-dropdown-content" id="hashtag-dropdown-' + i + '">';
+        html += '<div class="hashtag-selection-compact">';
+        
+        verfuegbareHashtags.forEach(function(tag) {
+            html += '<label class="hashtag-checkbox">';
+            html += '<input type="checkbox" name="hashtag-' + i + '" value="' + tag + '" onchange="updateSelectedCount(' + i + ')">';
+            html += '<span>' + tag + '</span>';
+            html += '</label>';
+        });
+        
+        html += '</div></div></div>';
+        html += '<div class="form-group"><label>Eigene Hashtags (optional):</label><input type="text" id="custom-hashtags-' + i + '" placeholder="#MeinTag"></div>';
+        
+        form.innerHTML = html;
+        container.appendChild(form);
+    }
+}
+
+// ✅ NEU: Übung aus Upload entfernen
+function removeUebungFromUpload(uebungNr) {
+    if (!confirm('Übung ' + uebungNr + ' wirklich entfernen?')) return;
+    
+    // Checkbox deaktivieren
+    var checkbox = document.getElementById('use-uebung-' + uebungNr);
+    checkbox.checked = false;
+    
+    // Form entfernen
+    var form = document.getElementById('form-uebung-' + uebungNr);
+    if (form) form.remove();
+    
+    // Prüfen ob noch Übungen übrig
+    var remaining = document.querySelectorAll('.uebung-hashtag-form').length;
+    if (remaining === 0) {
+        alert('⚠️ Mindestens eine Übung muss ausgewählt sein!');
+        goToStep(2); // Zurück zu Schritt 2
+    }
+}
 
         function getUebungImageFromOriginal(index) {
             if (!uploadedImage) return '';
