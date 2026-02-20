@@ -2220,31 +2220,7 @@ function updateDividerPositions() {
     });
 }
 
-        function updateOverlays() {
-            var canvas = document.getElementById('adjust-canvas');
-            var canvasRect = canvas.getBoundingClientRect();
-            var positions = [0].concat(customDividers).concat([1]);
-            
-            overlayElements.forEach(function(overlay, index) {
-                var checkbox = document.getElementById('use-uebung-' + (index + 1));
-                if (checkbox && !checkbox.checked) {
-                    overlay.style.display = 'none';
-                } else {
-                    overlay.style.display = 'flex';
-                    overlay.style.top = (positions[index] * canvasRect.height) + 'px';
-                    overlay.style.height = ((positions[index + 1] - positions[index]) * canvasRect.height) + 'px';
-                }
-            });
-            
-            dividerElements.forEach(function(line, index) {
-                var nextCheckbox = document.getElementById('use-uebung-' + (index + 2));
-                if (nextCheckbox && !nextCheckbox.checked) {
-                    line.style.display = 'none';
-                } else {
-                    line.style.display = 'block';
-                }
-            });
-        }
+
 
 function setupHashtagForms() {
     var container = document.getElementById('uebung-hashtag-forms');
