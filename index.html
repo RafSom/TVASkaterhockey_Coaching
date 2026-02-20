@@ -2249,114 +2249,123 @@ function initDragAndDrop() {
         }
 
         async function saveUebungen() {
-            var forms = document.querySelectorAll('.uebung-hashtag-form');
-            
-            for (var i = 0; i < forms.length; i++) {
-                var form = forms[i];
-                var uebungIndex = parseInt(form.getAttribute('data-uebung'));
-                var nameField = document.getElementById('uebungsname-' + uebungIndex);
-                
-                if (!nameField.value.trim()) {
-                    alert('Bitte gib einen Namen für ' + uebungColors[uebungIndex-1].label + ' ein!');
-                    nameField.focus();
-                    return;
-                }
-            }
-            
-            var button = event.target;
-            button.disabled = true;
-            button.textContent = 'Speichere...';
+    var forms = document.querySelectorAll('.uebung-hashtag-form');
+    
+    for (var i = 0; i < forms.length; i++) {
+        var form = forms[i];
+        var uebungIndex = parseInt(form.getAttribute('data-uebung'));
+        var nameField = document.getElementById('uebungsname-' + uebungIndex);
+        
+        if (!nameField.value.trim()) {
+            alert('Bitte gib einen Namen für ' + uebungColors[uebungIndex-1].label + ' ein!');
+            nameField.focus();
+            return;
+        }
+    }
+    
+    var button = event.target;
+    button.disabled = true;
+    button.textContent = 'Speichere...';
+    
+    try {
+        var savedCount = 0;
+        var errors = [];
+        
+        for (var i = 0; i < forms.length; i++) {
+            var form = forms[i];
+            var uebungIndex = parseInt(form.getAttribute('data-uebung'));
             
             try {
-                var savedCount = 0;
-                var errors = [];
+                var imageData = getUebungImageFromOriginal(uebungIndex);
+                var blob = dataURLtoBlob(imageData);
+                var fileName = aktuellesMannschaftName.replace(/\s+/g, '_') + '_' + Date.now() + '_' + uebungIndex + '.jpg';
                 
-                for (var i = 0; i < forms.length; i++) {
-                    var form = forms[i];
-                    var uebungIndex = parseInt(form.getAttribute('data-uebung'));
-                    
-                    try {
-                        var imageData = getUebungImageFromOriginal(uebungIndex);
-                        var blob = dataURLtoBlob(imageData);
-                        var fileName = aktuellesMannschaftName.replace(/\s+/g, '_') + '_' + Date.now() + '_' + uebungIndex + '.jpg';
-                        
-                        var uploadResult = await supabaseClient.storage
-                            .from('uebungsbilder')
-                            .upload(fileName, blob, {
-                                contentType: 'image/jpeg',
-                                upsert: false
-                            });
-                        
-                        if (uploadResult.error) {
-                            errors.push('Upload Fehler (Übung ' + uebungIndex + '): ' + uploadResult.error.message);
-                            continue;
-                        }
-                        
-                        var publicURL = supabaseClient.storage
-                            .from('uebungsbilder')
-                            .getPublicUrl(fileName);
-                        
-                        if (!publicURL.data || !publicURL.data.publicUrl) {
-                            errors.push('Konnte URL nicht generieren für Übung ' + uebungIndex);
-                            continue;
-                        }
-                        
-                        var selectedHashtags = [];
-                        var checkboxes = form.querySelectorAll('input[name="hashtag-' + uebungIndex + '"]:checked');
-                        checkboxes.forEach(function(cb) {
-                            selectedHashtags.push(cb.value);
-                        });
-                        
-                        var customHashtags = document.getElementById('custom-hashtags-' + uebungIndex).value;
-                        if (customHashtags) {
-                            customHashtags.split(' ').forEach(function(tag) {
-                                if (tag.startsWith('#')) selectedHashtags.push(tag);
-                            });
-                        }
-                        
-                        var uebungsname = document.getElementById('uebungsname-' + uebungIndex).value.trim();
-                        
-                        var insertResult = await supabaseClient.from('uebungen').insert([{
-                            bild_url: publicURL.data.publicUrl,
-                            hashtags: selectedHashtags,
-                            titel: uebungsname,
-                            notizen: uebungsname
-                        }]);
-                        
-                        if (insertResult.error) {
-                            errors.push('Datenbank Fehler (Übung ' + uebungIndex + '): ' + insertResult.error.message);
-                            continue;
-                        }
-                        
-                        savedCount++;
-                        
-                    } catch (err) {
-                        errors.push('Fehler bei Übung ' + uebungIndex + ': ' + err.message);
-                    }
+                var uploadResult = await supabaseClient.storage
+                    .from('uebungsbilder')
+                    .upload(fileName, blob, {
+                        contentType: 'image/jpeg',
+                        upsert: false
+                    });
+                
+                if (uploadResult.error) {
+                    errors.push('Upload Fehler (Übung ' + uebungIndex + '): ' + uploadResult.error.message);
+                    continue;
                 }
                 
-                if (errors.length > 0) {
-                    var errorContainer = document.createElement('div');
-                    errorContainer.className = 'alert alert-danger';
-                    errorContainer.innerHTML = '<strong>Fehler aufgetreten:</strong><br>' + errors.join('<br>');
-                    document.getElementById('upload-step-3').insertBefore(errorContainer, document.getElementById('uebung-hashtag-forms'));
+                var publicURL = supabaseClient.storage
+                    .from('uebungsbilder')
+                    .getPublicUrl(fileName);
+                
+                if (!publicURL.data || !publicURL.data.publicUrl) {
+                    errors.push('Konnte URL nicht generieren für Übung ' + uebungIndex);
+                    continue;
                 }
                 
-                if (savedCount > 0) {
-                    alert('✓ ' + savedCount + ' Übung(en) gespeichert!' + (errors.length > 0 ? '\n\n⚠️ ' + errors.length + ' Fehler aufgetreten.' : ''));
-                    closeModal('upload-modal');
-                    showInitialUebungenState();
-                } else {
-                    alert('❌ Keine Übungen gespeichert.\n\n' + errors.join('\n'));
+                var selectedHashtags = [];
+                var checkboxes = form.querySelectorAll('input[name="hashtag-' + uebungIndex + '"]:checked');
+                checkboxes.forEach(function(cb) {
+                    selectedHashtags.push(cb.value);
+                });
+                
+                // Custom Hashtags
+                var customHashtags = document.getElementById('custom-hashtags-' + uebungIndex).value;
+                if (customHashtags) {
+                    customHashtags.split(' ').forEach(function(tag) {
+                        tag = tag.trim();
+                        if (tag.startsWith('#')) {
+                            selectedHashtags.push(tag);
+                            
+                            // ✅ NEU: Custom Hashtag zur globalen Liste hinzufügen
+                            if (verfuegbareHashtags.indexOf(tag) === -1) {
+                                verfuegbareHashtags.push(tag);
+                            }
+                        }
+                    });
                 }
+                
+                var uebungsname = document.getElementById('uebungsname-' + uebungIndex).value.trim();
+                
+                var insertResult = await supabaseClient.from('uebungen').insert([{
+                    bild_url: publicURL.data.publicUrl,
+                    hashtags: selectedHashtags,
+                    titel: uebungsname,
+                    notizen: uebungsname
+                }]);
+                
+                if (insertResult.error) {
+                    errors.push('Datenbank Fehler (Übung ' + uebungIndex + '): ' + insertResult.error.message);
+                    continue;
+                }
+                
+                savedCount++;
                 
             } catch (err) {
-                alert('Kritischer Fehler: ' + err.message);
-            } finally {
-                button.disabled = false;
-                button.textContent = 'Übungen speichern';
+                errors.push('Fehler bei Übung ' + uebungIndex + ': ' + err.message);
             }
         }
+        
+        if (errors.length > 0) {
+            var errorContainer = document.createElement('div');
+            errorContainer.className = 'alert alert-danger';
+            errorContainer.innerHTML = '<strong>Fehler aufgetreten:</strong><br>' + errors.join('<br>');
+            document.getElementById('upload-step-3').insertBefore(errorContainer, document.getElementById('uebung-hashtag-forms'));
+        }
+        
+        if (savedCount > 0) {
+            alert('✓ ' + savedCount + ' Übung(en) gespeichert!' + (errors.length > 0 ? '\n\n⚠️ ' + errors.length + ' Fehler aufgetreten.' : ''));
+            closeModal('upload-modal');
+            showInitialUebungenState();
+        } else {
+            alert('❌ Keine Übungen gespeichert.\n\n' + errors.join('\n'));
+        }
+        
+    } catch (err) {
+        alert('Kritischer Fehler: ' + err.message);
+    } finally {
+        button.disabled = false;
+        button.textContent = 'Übungen speichern';
+    }
+}
 
         function dataURLtoBlob(dataURL) {
             var arr = dataURL.split(',');
@@ -2370,17 +2379,17 @@ function initDragAndDrop() {
             return new Blob([u8arr], {type: mime});
         }
 
-        function showInitialUebungenState() {
-            var container = document.getElementById('uebungen-liste');
-            
-            if (activeHashtagFilter.length === 0) {
-                container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🏒</div><h3>Wähle einen Hashtag-Filter aus</h3><p>Nutze die Filter oben, um Übungen anzuzeigen.<br>Oder lade neue Übungen hoch!</p></div>';
-            } else {
-                ladeUebungen();
-            }
-            
-            renderHashtagFilter();
-        }
+    function showInitialUebungenState() {
+    var container = document.getElementById('uebungen-liste');
+    
+    if (activeHashtagFilter.length === 0) {
+        container.innerHTML = '<div class="alert alert-info" style="text-align: center;">Wähle einen Hashtag aus, um nach Übungen zu suchen.</div>';
+    } else {
+        ladeUebungen();
+    }
+    
+    renderHashtagFilter();
+}
 
         async function ladeUebungen() {
             var container = document.getElementById('uebungen-liste');
@@ -2439,37 +2448,42 @@ function initDragAndDrop() {
         }
 
         function renderHashtagFilter() {
-            var container = document.getElementById('filter-hashtags');
-            container.innerHTML = '';
-            
-            verfuegbareHashtags.forEach(function(tag) {
-                var btn = document.createElement('button');
-                btn.className = 'hashtag-btn';
-                btn.textContent = tag;
-                btn.onclick = function() {
-                    var index = activeHashtagFilter.indexOf(tag);
-                    if (index === -1) {
-                        activeHashtagFilter.push(tag);
-                        this.classList.add('active');
-                    } else {
-                        activeHashtagFilter.splice(index, 1);
-                        this.classList.remove('active');
-                    }
-                    
-                    if (activeHashtagFilter.length > 0) {
-                        ladeUebungen();
-                    } else {
-                        showInitialUebungenState();
-                    }
-                };
-                
-                if (activeHashtagFilter.indexOf(tag) !== -1) {
-                    btn.classList.add('active');
-                }
-                
-                container.appendChild(btn);
-            });
+    var container = document.getElementById('filter-hashtags');
+    container.innerHTML = '';
+    
+    verfuegbareHashtags.forEach(function(tag) {
+        var btn = document.createElement('button');
+        btn.className = 'hashtag-btn';
+        btn.textContent = tag;
+        
+        // ✅ KORRIGIERT: Status basiert auf activeHashtagFilter
+        if (activeHashtagFilter.indexOf(tag) !== -1) {
+            btn.classList.add('active');
         }
+        
+        btn.onclick = function() {
+            var index = activeHashtagFilter.indexOf(tag);
+            if (index === -1) {
+                // Hinzufügen
+                activeHashtagFilter.push(tag);
+                this.classList.add('active');
+            } else {
+                // Entfernen
+                activeHashtagFilter.splice(index, 1);
+                this.classList.remove('active'); // ✅ NEU: Klasse entfernen
+            }
+            
+            // ✅ NEU: Wenn keine Filter mehr aktiv, zurück zum Empty State
+            if (activeHashtagFilter.length > 0) {
+                ladeUebungen();
+            } else {
+                showInitialUebungenState();
+            }
+        };
+        
+        container.appendChild(btn);
+    });
+}
 
         function clearHashtagFilter() {
             activeHashtagFilter = [];
