@@ -1671,55 +1671,51 @@
             initDragAndDrop();
         }
 
-        function kopiereFuerWhatsApp() {
-            if (!letzteErgebnisse) return;
+function kopiereFuerWhatsApp() {
+    var text = aktuellesMannschaftName + ' - Trainingsblöcke\n\n';
+    
+    // Lese ALLE Blöcke aus dem DOM (nicht aus letzteErgebnisse!)
+    var alleBlockPaare = document.querySelectorAll('.block-paar');
+    
+    alleBlockPaare.forEach(function(blockPaar) {
+        var bloecke = blockPaar.querySelectorAll('.block[data-block-id]');
+        
+        bloecke.forEach(function(block) {
+            var blockName = block.getAttribute('data-block-id');
+            var spieler = block.querySelectorAll('.block-spieler');
+            
+            text += 'Block ' + blockName + ': ';
+            
+            var spielerNamen = [];
+            spieler.forEach(function(spielerElement) {
+                // Extrahiere Namen aus dem Text (entferne "☰" und "(Stärke)")
+                var volltext = spielerElement.textContent.trim();
+                var name = volltext.replace('☰', '').trim();
+                // Entferne Stärke in Klammern am Ende
+                name = name.replace(/\s*$$\d+$$\s*$/, '').trim();
+                spielerNamen.push(name);
+            });
+            
+            text += spielerNamen.join(', ') + '\n';
+        });
+        
+        text += '\n';
+    });
+    
+    // Kopieren
+    var textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.style.position = 'fixed';
+    textarea.style.opacity = '0';
+    document.body.appendChild(textarea);
+    textarea.select();
+    document.execCommand('copy');
+    document.body.removeChild(textarea);
 
-            var text = aktuellesMannschaftName + ' - Trainingsblöcke\n\n';
-            var buchstaben = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
-            var aktuellerIndex = 0;
-
-            for (var i = 0; i < letzteErgebnisse.blockpaare.length; i++) {
-                var paar = letzteErgebnisse.blockpaare[i];
-                var blockName1 = buchstaben[aktuellerIndex];
-                var blockName2 = buchstaben[aktuellerIndex + 1];
-                aktuellerIndex += 2;
-                
-                text += 'Block ' + blockName1 + ': ';
-                for (var j = 0; j < paar[0].length; j++) {
-                    if (j > 0) text += ', ';
-                    text += paar[0][j].name;
-                }
-                text += '\n';
-                text += 'Block ' + blockName2 + ': ';
-                for (var j = 0; j < paar[1].length; j++) {
-                    if (j > 0) text += ', ';
-                    text += paar[1][j].name;
-                }
-                text += '\n\n';
-            }
-
-            if (letzteErgebnisse.uebrigeSpieler.length > 0) {
-                var blockName = buchstaben[aktuellerIndex];
-                text += 'Block ' + blockName + ': ';
-                for (var j = 0; j < letzteErgebnisse.uebrigeSpieler.length; j++) {
-                    if (j > 0) text += ', ';
-                    text += letzteErgebnisse.uebrigeSpieler[j].name;
-                }
-            }
-
-            var textarea = document.createElement('textarea');
-            textarea.value = text;
-            textarea.style.position = 'fixed';
-            textarea.style.opacity = '0';
-            document.body.appendChild(textarea);
-            textarea.select();
-            document.execCommand('copy');
-            document.body.removeChild(textarea);
-
-            var successMsg = document.getElementById('copy-success');
-            successMsg.style.display = 'inline-block';
-            setTimeout(function() { successMsg.style.display = 'none'; }, 3000);
-        }
+    var successMsg = document.getElementById('copy-success');
+    successMsg.style.display = 'inline-block';
+    setTimeout(function() { successMsg.style.display = 'none'; }, 3000);
+}
 
         function erstelleAusgeglicheneBloecke(spielerListe, anzahlPaare) {
             var alleAngreifer = [];
@@ -1806,110 +1802,116 @@
             return { block1: spielerListe, block2: [] };
         }
 
-        function initDragAndDrop() {
-            var draggables = document.querySelectorAll('.block-spieler.draggable');
-            var blocks = document.querySelectorAll('.block[data-block-id]');
-            var draggedElement = null;
+// ✅ FIX 2: Drag & Drop zwischen ALLEN Blöcken erlauben
+function initDragAndDrop() {
+    var draggables = document.querySelectorAll('.block-spieler.draggable');
+    var blocks = document.querySelectorAll('.block[data-block-id]');
+    var draggedElement = null;
 
-            draggables.forEach(function(elem) {
-                elem.addEventListener('dragstart', function(e) {
-                    draggedElement = this;
-                    this.classList.add('dragging');
-                    e.dataTransfer.effectAllowed = 'move';
-                    e.dataTransfer.setData('text/html', this.innerHTML);
-                });
+    draggables.forEach(function(elem) {
+        // Desktop: Drag Events
+        elem.addEventListener('dragstart', function(e) {
+            draggedElement = this;
+            this.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/html', this.innerHTML);
+        });
 
-                elem.addEventListener('dragend', function(e) {
-                    this.classList.remove('dragging');
-                    var allBlocks = document.querySelectorAll('.block[data-block-id]');
-                    allBlocks.forEach(function(b) { b.classList.remove('drag-over'); });
-                    draggedElement = null;
-                });
+        elem.addEventListener('dragend', function(e) {
+            this.classList.remove('dragging');
+            var allBlocks = document.querySelectorAll('.block[data-block-id]');
+            allBlocks.forEach(function(b) { b.classList.remove('drag-over'); });
+            draggedElement = null;
+        });
 
-                var touchStartY, touchStartX, touchElement, isTouching;
+        // Touch Events für Mobile
+        var touchStartY, touchStartX, touchElement, isTouching;
+        
+        elem.addEventListener('touchstart', function(e) {
+            touchElement = this;
+            isTouching = false;
+            var touch = e.touches[0];
+            touchStartX = touch.clientX;
+            touchStartY = touch.clientY;
+        });
+
+        elem.addEventListener('touchmove', function(e) {
+            if (!touchElement) return;
+            
+            var touch = e.touches[0];
+            var deltaX = Math.abs(touch.clientX - touchStartX);
+            var deltaY = Math.abs(touch.clientY - touchStartY);
+            
+            if (deltaX > 10 || deltaY > 10) {
+                e.preventDefault();
+                isTouching = true;
+                touchElement.classList.add('dragging');
                 
-                elem.addEventListener('touchstart', function(e) {
-                    touchElement = this;
-                    isTouching = false;
-                    var touch = e.touches[0];
-                    touchStartX = touch.clientX;
-                    touchStartY = touch.clientY;
-                });
-
-                elem.addEventListener('touchmove', function(e) {
-                    if (!touchElement) return;
-                    
-                    var touch = e.touches[0];
-                    var deltaX = Math.abs(touch.clientX - touchStartX);
-                    var deltaY = Math.abs(touch.clientY - touchStartY);
-                    
-                    if (deltaX > 10 || deltaY > 10) {
-                        e.preventDefault();
-                        isTouching = true;
-                        touchElement.classList.add('dragging');
-                        
-                        var elementAtPoint = document.elementFromPoint(touch.clientX, touch.clientY);
-                        if (elementAtPoint) {
-                            var targetBlock = elementAtPoint.closest('.block[data-block-id]');
-                            var allBlocks = document.querySelectorAll('.block[data-block-id]');
-                            allBlocks.forEach(function(b) { b.classList.remove('drag-over'); });
-                            if (targetBlock) targetBlock.classList.add('drag-over');
-                        }
-                    }
-                });
-
-                elem.addEventListener('touchend', function(e) {
-                    if (!touchElement) return;
-                    
-                    touchElement.classList.remove('dragging');
-                    
-                    if (isTouching) {
-                        var touch = e.changedTouches[0];
-                        var elementAtPoint = document.elementFromPoint(touch.clientX, touch.clientY);
-                        
-                        if (elementAtPoint) {
-                            var targetBlock = elementAtPoint.closest('.block[data-block-id]');
-                            var sourceBlock = touchElement.closest('.block[data-block-id]');
-                            
-                            if (targetBlock && sourceBlock && targetBlock !== sourceBlock) {
-                                targetBlock.querySelector('.block-header').insertAdjacentElement('afterend', touchElement);
-                                updateBlockStaerken();
-                            }
-                        }
-                    }
-                    
+                var elementAtPoint = document.elementFromPoint(touch.clientX, touch.clientY);
+                if (elementAtPoint) {
+                    var targetBlock = elementAtPoint.closest('.block[data-block-id]');
                     var allBlocks = document.querySelectorAll('.block[data-block-id]');
                     allBlocks.forEach(function(b) { b.classList.remove('drag-over'); });
-                    isTouching = false;
-                    touchElement = null;
-                });
-            });
+                    if (targetBlock) targetBlock.classList.add('drag-over');
+                }
+            }
+        });
 
-            blocks.forEach(function(block) {
-                block.addEventListener('dragover', function(e) {
-                    e.preventDefault();
-                    this.classList.add('drag-over');
-                    return false;
-                });
-
-                block.addEventListener('dragleave', function() {
-                    this.classList.remove('drag-over');
-                });
-
-                block.addEventListener('drop', function(e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    this.classList.remove('drag-over');
+        elem.addEventListener('touchend', function(e) {
+            if (!touchElement) return;
+            
+            touchElement.classList.remove('dragging');
+            
+            if (isTouching) {
+                var touch = e.changedTouches[0];
+                var elementAtPoint = document.elementFromPoint(touch.clientX, touch.clientY);
+                
+                if (elementAtPoint) {
+                    var targetBlock = elementAtPoint.closest('.block[data-block-id]');
+                    var sourceBlock = touchElement.closest('.block[data-block-id]');
                     
-                    if (draggedElement && draggedElement.parentElement !== this) {
-                        this.querySelector('.block-header').insertAdjacentElement('afterend', draggedElement);
+                    // ✅ ÄNDERUNG: Erlaube Verschieben zwischen ALLEN Blöcken
+                    if (targetBlock && sourceBlock && targetBlock !== sourceBlock) {
+                        targetBlock.querySelector('.block-header').insertAdjacentElement('afterend', touchElement);
                         updateBlockStaerken();
                     }
-                    
-                    return false;
-                });
-            });
-        }
+                }
+            }
+            
+            var allBlocks = document.querySelectorAll('.block[data-block-id]');
+            allBlocks.forEach(function(b) { b.classList.remove('drag-over'); });
+            isTouching = false;
+            touchElement = null;
+        });
+    });
+
+    // ✅ ALLE Blöcke als Drop-Ziele (keine Einschränkung mehr!)
+    blocks.forEach(function(block) {
+        block.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            this.classList.add('drag-over');
+            return false;
+        });
+
+        block.addEventListener('dragleave', function() {
+            this.classList.remove('drag-over');
+        });
+
+        block.addEventListener('drop', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            this.classList.remove('drag-over');
+            
+            // ✅ ÄNDERUNG: Erlaube Drop in JEDEM Block
+            if (draggedElement && draggedElement.parentElement !== this) {
+                this.querySelector('.block-header').insertAdjacentElement('afterend', draggedElement);
+                updateBlockStaerken();
+            }
+            
+            return false;
+        });
+    });
+}
 
         function updateBlockStaerken() {
             var blocks = document.querySelectorAll('.block[data-block-id]');
