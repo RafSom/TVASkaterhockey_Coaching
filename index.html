@@ -1033,7 +1033,17 @@
                 font-size: 14px;
                 padding: 6px 12px;
             }
+
+/* Ergänze diese Regel */
+body.modal-open {
+    overflow: hidden;
+    height: 100vh;
+    position: fixed; /* ✅ NEU: Body komplett fixieren */
+    width: 100%;
+    top: 0;
+}
         }
+
     </style>
 </head>
 <body>
