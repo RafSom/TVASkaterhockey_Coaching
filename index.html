@@ -2455,31 +2455,38 @@ function initDragAndDrop() {
         var btn = document.createElement('button');
         btn.className = 'hashtag-btn';
         btn.textContent = tag;
+        btn.setAttribute('data-tag', tag); // ✅ Tag im Attribut speichern
         
-        // ✅ KORRIGIERT: Status basiert auf activeHashtagFilter
+        // Status basiert auf activeHashtagFilter
         if (activeHashtagFilter.indexOf(tag) !== -1) {
             btn.classList.add('active');
         }
         
-        btn.onclick = function() {
-            var index = activeHashtagFilter.indexOf(tag);
+        // ✅ NEU: Verwende addEventListener statt onclick
+        btn.addEventListener('click', function(e) {
+            e.preventDefault(); // Verhindert Doppel-Trigger
+            
+            var clickedTag = this.getAttribute('data-tag');
+            var index = activeHashtagFilter.indexOf(clickedTag);
+            
             if (index === -1) {
                 // Hinzufügen
-                activeHashtagFilter.push(tag);
-                this.classList.add('active');
+                activeHashtagFilter.push(clickedTag);
             } else {
                 // Entfernen
                 activeHashtagFilter.splice(index, 1);
-                this.classList.remove('active'); // ✅ NEU: Klasse entfernen
             }
             
-            // ✅ NEU: Wenn keine Filter mehr aktiv, zurück zum Empty State
+            // ✅ NEU: Filter komplett neu rendern (statt Klasse manuell zu ändern)
+            renderHashtagFilter();
+            
+            // Übungen laden oder Empty State zeigen
             if (activeHashtagFilter.length > 0) {
                 ladeUebungen();
             } else {
                 showInitialUebungenState();
             }
-        };
+        });
         
         container.appendChild(btn);
     });
