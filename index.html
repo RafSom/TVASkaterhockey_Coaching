@@ -2082,16 +2082,29 @@ function createDividerLines() {
     
     var canvasRect = canvas.getBoundingClientRect();
     
-    // ✅ NEU: Für jede aktive Übung (außer der letzten) eine Linie
-    for (var i = 1; i <= 3; i++) { // Übung 1, 2, 3 haben Linien (Übung 4 geht bis 100%)
+    // Finde alle aktiven Übungen
+    var activeUebungen = [];
+    for (var i = 1; i <= 4; i++) {
         var checkbox = document.getElementById('use-uebung-' + i);
-        if (!checkbox.checked) continue; // Nur wenn Übung aktiv
+        if (checkbox.checked) {
+            activeUebungen.push(i);
+        }
+    }  
+
+// Für jede aktive Übung (außer der letzten) eine Trennlinie
+    for (var i = 0; i < activeUebungen.length - 1; i++) {
+        var uebungNr = activeUebungen[i];
+        var position = customDividers[uebungNr - 1]; // Position dieser Übung
         
         var line = document.createElement('div');
         line.className = 'divider-line';
-        line.style.top = (customDividers[i-1] * canvasRect.height) + 'px';
-        line.setAttribute('data-index', i-1);
-        line.setAttribute('data-uebung', i); // ✅ Welche Übung diese Linie gehört
+        line.style.top = (position * canvasRect.height) + 'px';
+        line.setAttribute('data-divider-index', uebungNr - 1);
+        line.setAttribute('data-uebung-unten', uebungNr); // Übung darüber
+        line.setAttribute('data-uebung-oben', activeUebungen[i + 1]); // Übung darunter
+        
+        // Label anzeigen
+        line.setAttribute('title', 'Trennlinie zwischen Übung ' + uebungNr + ' und ' + activeUebungen[i + 1]);
         
         line.addEventListener('mousedown', startDragDivider);
         line.addEventListener('touchstart', startDragDivider, { passive: false });
@@ -2099,8 +2112,9 @@ function createDividerLines() {
         container.appendChild(line);
         dividerElements.push(line);
     }
-}
-        function createOverlays() {
+}      
+
+	function createOverlays() {
     var container = document.getElementById('canvas-container');
     var canvas = document.getElementById('adjust-canvas');
     
@@ -2110,26 +2124,49 @@ function createDividerLines() {
     overlayElements = [];
     
     var canvasRect = canvas.getBoundingClientRect();
-    var positions = [0].concat(customDividers).concat([1]);
     
-    for (var i = 0; i < 4; i++) {
-        var checkbox = document.getElementById('use-uebung-' + (i + 1));
-        if (!checkbox.checked) continue; // Nur aktive Übungen
+    // Finde alle aktiven Übungen mit ihren Positionen
+    var activeUebungen = [];
+    for (var i = 1; i <= 4; i++) {
+        var checkbox = document.getElementById('use-uebung-' + i);
+        if (checkbox.checked) {
+            activeUebungen.push({
+                nr: i,
+                start: i === 1 ? 0 : customDividers[i - 2], // Start bei vorheriger Divider
+                end: customDividers[i - 1] || 1 // Ende bei eigener Divider (oder 100%)
+            });
+        }
+    }
+
+    // Korrigiere Start/End für lückenlose Anordnung
+    for (var i = 0; i < activeUebungen.length; i++) {
+        if (i === 0) {
+            activeUebungen[i].start = 0;
+        } else {
+            activeUebungen[i].start = activeUebungen[i - 1].end;
+        }
         
+        if (i === activeUebungen.length - 1) {
+            activeUebungen[i].end = 1;
+        }
+    }
+    
+    // Overlays erstellen
+    activeUebungen.forEach(function(uebung) {
         var overlay = document.createElement('div');
         overlay.className = 'uebung-overlay';
-        overlay.style.top = (positions[i] * canvasRect.height) + 'px';
-        overlay.style.height = ((positions[i + 1] - positions[i]) * canvasRect.height) + 'px';
-        overlay.style.background = uebungColors[i].bg;
+        overlay.style.top = (uebung.start * canvasRect.height) + 'px';
+        overlay.style.height = ((uebung.end - uebung.start) * canvasRect.height) + 'px';
+        overlay.style.background = uebungColors[uebung.nr - 1].bg;
         
         var label = document.createElement('div');
         label.className = 'uebung-overlay-label';
-        label.textContent = uebungColors[i].label;
+        label.textContent = uebungColors[uebung.nr - 1].label;
         overlay.appendChild(label);
         
         container.appendChild(overlay);
         overlayElements.push(overlay);
-    }
+    });
 }
 
 // ✅ NEU: Beim Checkbox-Toggle Linien neu erstellen
@@ -2139,49 +2176,49 @@ function updateOverlays() {
 }
 
         function startDragDivider(e) {
-            e.preventDefault();
-            isDraggingDivider = true;
-            var dividerIndex = parseInt(this.getAttribute('data-index'));
-            var canvas = document.getElementById('adjust-canvas');
-            var canvasRect = canvas.getBoundingClientRect();
-            
-            function onMove(e) {
-                if (!isDraggingDivider) return;
-                
-                var clientY = e.clientY || (e.touches && e.touches[0].clientY);
-                var relativeY = clientY - canvasRect.top;
-                var percentage = Math.max(0.05, Math.min(0.95, relativeY / canvasRect.height));
-                
-                customDividers[dividerIndex] = percentage;
-                customDividers.sort(function(a, b) { return a - b; });
-                
-                updateDividerPositions();
-                updateOverlays();
-            }
-            
-            function onEnd() {
-                isDraggingDivider = false;
-                document.removeEventListener('mousemove', onMove);
-                document.removeEventListener('mouseup', onEnd);
-                document.removeEventListener('touchmove', onMove);
-                document.removeEventListener('touchend', onEnd);
-            }
-            
-            document.addEventListener('mousemove', onMove);
-            document.addEventListener('mouseup', onEnd);
-            document.addEventListener('touchmove', onMove, { passive: false });
-            document.addEventListener('touchend', onEnd);
-        }
+    e.preventDefault();
+    isDraggingDivider = true;
+    var dividerIndex = parseInt(this.getAttribute('data-divider-index'));
+    var canvas = document.getElementById('adjust-canvas');
+    var canvasRect = canvas.getBoundingClientRect();
+    
+    function onMove(e) {
+        if (!isDraggingDivider) return;
+        
+        var clientY = e.clientY || (e.touches && e.touches[0].clientY);
+        var relativeY = clientY - canvasRect.top;
+        var percentage = Math.max(0.05, Math.min(0.95, relativeY / canvasRect.height));
+        
+        // Setze neue Position
+        customDividers[dividerIndex] = percentage;
+        
+        updateDividerPositions();
+        updateOverlays();
+    }
+    
+    function onEnd() {
+        isDraggingDivider = false;
+        document.removeEventListener('mousemove', onMove);
+        document.removeEventListener('mouseup', onEnd);
+        document.removeEventListener('touchmove', onMove);
+        document.removeEventListener('touchend', onEnd);
+    }
+    
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onEnd);
+    document.addEventListener('touchmove', onMove, { passive: false });
+    document.addEventListener('touchend', onEnd);
+}
 
-        function updateDividerPositions() {
-            var canvas = document.getElementById('adjust-canvas');
-            var canvasRect = canvas.getBoundingClientRect();
-            
-            dividerElements.forEach(function(line, index) {
-                line.style.top = (customDividers[index] * canvasRect.height) + 'px';
-                line.setAttribute('data-index', index);
-            });
-        }
+function updateDividerPositions() {
+    var canvas = document.getElementById('adjust-canvas');
+    var canvasRect = canvas.getBoundingClientRect();
+    
+    dividerElements.forEach(function(line) {
+        var index = parseInt(line.getAttribute('data-divider-index'));
+        line.style.top = (customDividers[index] * canvasRect.height) + 'px';
+    });
+}
 
         function updateOverlays() {
             var canvas = document.getElementById('adjust-canvas');
@@ -2209,7 +2246,7 @@ function updateOverlays() {
             });
         }
 
-        function setupHashtagForms() {
+function setupHashtagForms() {
     var container = document.getElementById('uebung-hashtag-forms');
     container.innerHTML = '';
     
@@ -2222,22 +2259,15 @@ function updateOverlays() {
         var form = document.createElement('div');
         form.className = 'uebung-hashtag-form';
         form.setAttribute('data-uebung', i);
-        form.setAttribute('id', 'form-uebung-' + i); // ✅ ID für einfaches Entfernen
+        form.setAttribute('id', 'form-uebung-' + i);
         
-        // ✅ NEU: Header mit X-Button
+        // Header mit X-Button
         var html = '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">';
         html += '<h5 style="margin: 0;">' + uebungColors[i-1].label + '</h5>';
         html += '<button type="button" class="close-btn" onclick="removeUebungFromUpload(' + i + ')" style="font-size: 24px; color: #FF3333;">&times;</button>';
         html += '</div>';
         
         html += '<img src="' + uebungBild + '" class="uebung-preview-small" onclick="zoomImage(this.src)">';
-        
-        html += '<div style="margin: 15px 0;">';
-        html += '<button type="button" class="btn-primary" onclick="suggestHashtagsWithAI(' + i + ', \'' + uebungBild + '\')" id="ai-suggest-btn-' + i + '">';
-        html += '🤖 Hashtags von KI vorschlagen';
-        html += '</button>';
-        html += '<span id="ai-loading-' + i + '" style="display: none; margin-left: 10px; color: #005EB8;">⏳ Analysiere...</span>';
-        html += '</div>';
         
         html += '<div class="form-group"><label>Name der Übung: <span style="color: #FF3333;">*</span></label><input type="text" id="uebungsname-' + i + '" placeholder="z.B. 2 gegen 1 Abschluss" required></div>';
         
