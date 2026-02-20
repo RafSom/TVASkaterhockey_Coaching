@@ -792,24 +792,39 @@
         }
 
         .hashtag-dropdown-content {
-            display: none;
-            position: absolute;
-            top: 100%;
-            left: 0;
-            right: 0;
-            background: white;
-            border: 2px solid #005EB8;
-            border-radius: 8px;
-            padding: 15px;
-            margin-top: 5px;
-            z-index: 100;
-            max-height: 300px;
-            overflow-y: auto;
-        }
+    display: none;
+    position: fixed; /* ✅ ÄNDERUNG: fixed statt absolute */
+    left: 10px; /* ✅ Mit Margin */
+    right: 10px; /* ✅ Mit Margin */
+    background: white;
+    border: 2px solid #005EB8;
+    border-radius: 8px;
+    padding: 15px;
+    margin-top: 5px;
+    z-index: 1000; /* ✅ Über allem */
+    max-height: 300px;
+    overflow-y: auto;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.3); /* ✅ Schatten für bessere Sichtbarkeit */
+	}
 
         .hashtag-dropdown-content.open {
-            display: block;
-        }
+    	display: block;
+	}
+
+.hashtag-dropdown-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.3);
+    z-index: 999;
+    display: none;
+}
+
+.hashtag-dropdown-backdrop.active {
+    display: block;
+}
 
         .hashtag-selection-compact {
             display: grid;
@@ -1034,14 +1049,6 @@
                 padding: 6px 12px;
             }
 
-/* Ergänze diese Regel */
-body.modal-open {
-    overflow: hidden;
-    height: 100vh;
-    position: fixed; /* ✅ NEU: Body komplett fixieren */
-    width: 100%;
-    top: 0;
-}
         }
 
     </style>
@@ -1545,10 +1552,28 @@ body.modal-open {
             await ladeSpieler();
         }
 
-        function closeModal(modalId) {
-            document.getElementById(modalId).classList.remove('active');
-            document.body.classList.remove('modal-open');
-        }
+     
+function closeModal(modalId) {
+    var modal = document.getElementById(modalId);
+    modal.classList.remove('active');
+    document.body.classList.remove('modal-open');
+    
+    // Scroll-Position wiederherstellen
+    var scrollY = document.body.style.top;
+    document.body.style.top = '';
+    if (scrollY) {
+        window.scrollTo(0, parseInt(scrollY || '0') * -1);
+    }
+    
+    // ✅ NEU: Dropdowns schließen
+    document.querySelectorAll('.hashtag-dropdown-content').forEach(function(d) {
+        d.classList.remove('open');
+    });
+    var backdrop = document.getElementById('hashtag-backdrop');
+    if (backdrop) {
+        backdrop.remove();
+    }
+}
 
         function openAbwesendeModal() {
             var container = document.getElementById('abwesende-liste');
@@ -2219,18 +2244,43 @@ function initDragAndDrop() {
             return tempCanvas.toDataURL('image/jpeg', 0.95);
         }
 
-        function toggleHashtagDropdown(uebungNr) {
-            var dropdown = document.getElementById('hashtag-dropdown-' + uebungNr);
-            var isOpen = dropdown.classList.contains('open');
-            
-            document.querySelectorAll('.hashtag-dropdown-content').forEach(function(d) {
-                d.classList.remove('open');
-            });
-            
-            if (!isOpen) {
-                dropdown.classList.add('open');
-            }
-        }
+function toggleHashtagDropdown(uebungNr) {
+    var dropdown = document.getElementById('hashtag-dropdown-' + uebungNr);
+    var toggle = dropdown.previousElementSibling; // Der Button
+    var isOpen = dropdown.classList.contains('open');
+    
+    // Schließe alle Dropdowns
+    document.querySelectorAll('.hashtag-dropdown-content').forEach(function(d) {
+        d.classList.remove('open');
+    });
+    
+    // Entferne alten Backdrop falls vorhanden
+    var oldBackdrop = document.getElementById('hashtag-backdrop');
+    if (oldBackdrop) {
+        oldBackdrop.remove();
+    }
+    
+    // Toggle aktuelles Dropdown
+    if (!isOpen) {
+        // ✅ NEU: Positioniere Dropdown relativ zum Button
+        var buttonRect = toggle.getBoundingClientRect();
+        dropdown.style.top = (buttonRect.bottom + 5) + 'px';
+        dropdown.style.left = buttonRect.left + 'px';
+        dropdown.style.width = buttonRect.width + 'px';
+        
+        dropdown.classList.add('open');
+        
+        // ✅ NEU: Backdrop hinzufügen (schließt bei Klick außerhalb)
+        var backdrop = document.createElement('div');
+        backdrop.id = 'hashtag-backdrop';
+        backdrop.className = 'hashtag-dropdown-backdrop active';
+        backdrop.onclick = function() {
+            dropdown.classList.remove('open');
+            this.remove();
+        };
+        document.body.appendChild(backdrop);
+    }
+}
 
         function updateSelectedCount(uebungNr) {
             var checkboxes = document.querySelectorAll('input[name="hashtag-' + uebungNr + '"]:checked');
