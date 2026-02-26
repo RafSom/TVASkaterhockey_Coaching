@@ -806,7 +806,7 @@
 
         .hashtag-dropdown-content {
     display: none;
-    position: fixed; /* ✅ ÄNDERUNG: fixed statt absolute */
+    position: absolute;     
     left: 10px; /* ✅ Mit Margin */
     right: 10px; /* ✅ Mit Margin */
     background: white;
@@ -2259,7 +2259,7 @@ function setupHashtagForms() {
         
         html += '<div class="form-group"><label>Name der Übung: <span style="color: #FF3333;">*</span></label><input type="text" id="uebungsname-' + i + '" placeholder="z.B. 2 gegen 1 Abschluss" required></div>';
         
-        html += '<div class="hashtag-dropdown">';
+        html += '<div class="hashtag-dropdown" style="position: relative;">';
         html += '<button type="button" class="hashtag-dropdown-toggle" onclick="toggleHashtagDropdown(' + i + ')">';
         html += '<span id="selected-tags-' + i + '">Hashtags auswählen (0)</span>';
         html += '<span>▼</span>';
