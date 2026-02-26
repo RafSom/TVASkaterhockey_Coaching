@@ -1062,6 +1062,10 @@
                 padding: 6px 12px;
             }
 
+.canvas-container, #adjust-canvas, .divider-line {
+    touch-action: none;
+}
+
         }
 
     </style>
@@ -2174,39 +2178,46 @@ function updateOverlays() {
     createOverlays();
 }
 
-        function startDragDivider(e) {
+function startDragDivider(e) {
     e.preventDefault();
     isDraggingDivider = true;
     var dividerIndex = parseInt(this.getAttribute('data-divider-index'));
-    var canvas = document.getElementById('adjust-canvas');
-    var canvasRect = canvas.getBoundingClientRect();
-    
-    function onMove(e) {
+
+    function onMove(ev) {
+        ev.preventDefault();
         if (!isDraggingDivider) return;
-        
-        var clientY = e.clientY || (e.touches && e.touches[0].clientY);
+
+        var clientY = getClientY(ev);
+        // Hole das CanvasRect JETZT, nicht vorher!
+        var canvas = document.getElementById('adjust-canvas');
+        var canvasRect = canvas.getBoundingClientRect();
         var relativeY = clientY - canvasRect.top;
         var percentage = Math.max(0.05, Math.min(0.95, relativeY / canvasRect.height));
-        
-        // Setze neue Position
+
         customDividers[dividerIndex] = percentage;
-        
         updateDividerPositions();
         updateOverlays();
     }
-    
-    function onEnd() {
+
+    function onEnd(ev) {
+        ev.preventDefault();
         isDraggingDivider = false;
         document.removeEventListener('mousemove', onMove);
         document.removeEventListener('mouseup', onEnd);
         document.removeEventListener('touchmove', onMove);
         document.removeEventListener('touchend', onEnd);
     }
-    
+
     document.addEventListener('mousemove', onMove);
     document.addEventListener('mouseup', onEnd);
     document.addEventListener('touchmove', onMove, { passive: false });
     document.addEventListener('touchend', onEnd);
+}
+
+function getClientY(e) {
+    if (e.touches && e.touches.length > 0) return e.touches[0].clientY;
+    if (e.changedTouches && e.changedTouches.length > 0) return e.changedTouches[0].clientY;
+    return e.clientY;
 }
 
 function updateDividerPositions() {
