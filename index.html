@@ -2174,6 +2174,7 @@ function createDividerLines() {
 
 // ✅ NEU: Beim Checkbox-Toggle Linien neu erstellen
 function updateOverlays() {
+	if (isDraggingDivider) return; // NICHT neu zeichnen während Drag!
     createDividerLines(); // ✅ Linien neu erstellen
     createOverlays();
 }
