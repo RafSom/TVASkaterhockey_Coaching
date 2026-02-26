@@ -2497,6 +2497,16 @@ async function saveUebungen() {
         button.textContent = 'Übungen speichern';
     }
 }
+
+function showInitialUebungenState() {
+    var container = document.getElementById('uebungen-liste');
+    if (activeHashtagFilter.length === 0) {
+        container.innerHTML = '<div class="alert alert-info" style="text-align: center;">Wähle einen Hashtag aus, um nach Übungen zu suchen.</div>';
+    } else {
+        ladeUebungen();
+    }
+    renderHashtagFilter();
+}
         
         
         async function ladeUebungen() {
