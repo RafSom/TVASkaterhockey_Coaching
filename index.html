@@ -672,7 +672,7 @@
             height: 4px;
             background: #FF3333;
             cursor: ns-resize;
-            z-index: 20;
+            z-index: 1000;
             box-shadow: 0 0 5px rgba(0,0,0,0.3);
         }
 
@@ -2183,21 +2183,20 @@ function startDragDivider(e) {
     isDraggingDivider = true;
     var dividerIndex = parseInt(this.getAttribute('data-divider-index'));
 
-    function onMove(ev) {
-        ev.preventDefault();
-        if (!isDraggingDivider) return;
+function onMove(ev) {
+    ev.preventDefault();
+    if (!isDraggingDivider) return;
 
-        var clientY = getClientY(ev);
-        // Hole das CanvasRect JETZT, nicht vorher!
-        var canvas = document.getElementById('adjust-canvas');
-        var canvasRect = canvas.getBoundingClientRect();
-        var relativeY = clientY - canvasRect.top;
-        var percentage = Math.max(0.05, Math.min(0.95, relativeY / canvasRect.height));
+    var clientY = getClientY(ev);
+    var canvas = document.getElementById('adjust-canvas');
+    var canvasRect = canvas.getBoundingClientRect(); // <-- Hier neu holen!
+    var relativeY = clientY - canvasRect.top;
+    var percentage = Math.max(0.05, Math.min(0.95, relativeY / canvasRect.height));
 
-        customDividers[dividerIndex] = percentage;
-        updateDividerPositions();
-        updateOverlays();
-    }
+    customDividers[dividerIndex] = percentage;
+    updateDividerPositions();
+    updateOverlays();
+}
 
     function onEnd(ev) {
         ev.preventDefault();
