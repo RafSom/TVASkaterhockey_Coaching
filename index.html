@@ -2483,12 +2483,20 @@ async function saveUebungen() {
         renderHashtagFilter();
         
         if (savedCount > 0) {
-            alert('✓ ' + savedCount + ' Übung(en) gespeichert!' + (errors.length > 0 ? '\n\n⚠️ ' + errors.length + ' Fehler aufgetreten.' : ''));
-            closeModal('upload-modal');
-            showInitialUebungenState();
-        } else {
-            alert('❌ Keine Übungen gespeichert.\n\n' + errors.join('\n'));
-        }
+    // Hashtag-Liste aufräumen und Filter neu rendern
+    verfuegbareHashtags = [...new Set(verfuegbareHashtags)];
+    verfuegbareHashtags.sort((a, b) => a.localeCompare(b, 'de'));
+    renderHashtagFilter();
+
+    // NEU: Hashtag-Dropdowns im Upload-Modal neu bauen
+    setupHashtagForms();
+
+    alert('✓ ' + savedCount + ' Übung(en) gespeichert!' + (errors.length > 0 ? '\n\n⚠️ ' + errors.length + ' Fehler aufgetreten.' : ''));
+    closeModal('upload-modal');
+    showInitialUebungenState();
+} else {
+    alert('❌ Keine Übungen gespeichert.\n\n' + errors.join('\n'));
+}
         
     } catch (err) {
         alert('Kritischer Fehler: ' + err.message);
