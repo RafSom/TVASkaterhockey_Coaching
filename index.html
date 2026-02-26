@@ -1704,17 +1704,16 @@ function closeModal(modalId) {
                 html += '</div></div>';
             }
 
-            if (letzteErgebnisse.uebrigeSpieler.length > 0) {
-                var aufgeteilt = teileUebrigeSpieler(letzteErgebnisse.uebrigeSpieler);
-                var blockName = buchstaben[aktuellerIndex];
-                var staerke = berechneGesamtstaerke(aufgeteilt.block1);
-                html += '<div class="block-paar"><div class="paar-header">Block ' + blockName + '</div><div class="paar-info">Gesamtstaerke: ' + staerke + '</div><div class="block"><div class="block-header">Block ' + blockName + ' (' + staerke + ')</div>';
-                for (var j = 0; j < aufgeteilt.block1.length; j++) {
-                    html += '<div class="block-spieler">' + aufgeteilt.block1[j].name + ' (' + aufgeteilt.block1[j].staerke + ')</div>';
-                }
-                html += '</div></div>';
-            }
-
+if (letzteErgebnisse.uebrigeSpieler.length > 0) {
+    var aufgeteilt = teileUebrigeSpieler(letzteErgebnisse.uebrigeSpieler);
+    var blockName = buchstaben[aktuellerIndex];
+    var staerke = berechneGesamtstaerke(aufgeteilt.block1);
+    html += '<div class="block-paar"><div class="paar-header">Block ' + blockName + '</div><div class="paar-info">Gesamtstaerke: ' + staerke + '</div><div class="block" data-block-id="' + blockName + '"><div class="block-header">Block ' + blockName + ' (' + staerke + ')</div>';
+    for (var j = 0; j < aufgeteilt.block1.length; j++) {
+        html += '<div class="block-spieler draggable" draggable="true" data-spieler-id="' + aufgeteilt.block1[j].id + '" data-spieler-staerke="' + aufgeteilt.block1[j].staerke + '"><span class="drag-handle">☰</span> ' + aufgeteilt.block1[j].name + ' (' + aufgeteilt.block1[j].staerke + ')</div>';
+    }
+    html += '</div></div>';
+}
             container.innerHTML = html;
             initDragAndDrop();
         }
