@@ -2380,7 +2380,8 @@ function toggleHashtagDropdown(uebungNr) {
             document.body.appendChild(modal);
         }
 
-        async function saveUebungen() {
+
+async function saveUebungen() {
     var forms = document.querySelectorAll('.uebung-hashtag-form');
     
     for (var i = 0; i < forms.length; i++) {
@@ -2446,8 +2447,8 @@ function toggleHashtagDropdown(uebungNr) {
                         tag = tag.trim();
                         if (tag.startsWith('#')) {
                             selectedHashtags.push(tag);
-                            
-                            // ✅ NEU: Custom Hashtag zur globalen Liste hinzufügen
+
+                            // NEU: Custom Hashtag zur globalen Liste hinzufügen
                             if (verfuegbareHashtags.indexOf(tag) === -1) {
                                 verfuegbareHashtags.push(tag);
                             }
@@ -2476,12 +2477,10 @@ function toggleHashtagDropdown(uebungNr) {
             }
         }
         
-        if (errors.length > 0) {
-            var errorContainer = document.createElement('div');
-            errorContainer.className = 'alert alert-danger';
-            errorContainer.innerHTML = '<strong>Fehler aufgetreten:</strong><br>' + errors.join('<br>');
-            document.getElementById('upload-step-3').insertBefore(errorContainer, document.getElementById('uebung-hashtag-forms'));
-        }
+        // NEU: Hashtag-Liste aufräumen und Filter neu rendern
+        verfuegbareHashtags = [...new Set(verfuegbareHashtags)];
+        verfuegbareHashtags.sort((a, b) => a.localeCompare(b, 'de'));
+        renderHashtagFilter();
         
         if (savedCount > 0) {
             alert('✓ ' + savedCount + ' Übung(en) gespeichert!' + (errors.length > 0 ? '\n\n⚠️ ' + errors.length + ' Fehler aufgetreten.' : ''));
@@ -2498,31 +2497,8 @@ function toggleHashtagDropdown(uebungNr) {
         button.textContent = 'Übungen speichern';
     }
 }
-
-        function dataURLtoBlob(dataURL) {
-            var arr = dataURL.split(',');
-            var mime = arr[0].match(/:(.*?);/)[1];
-            var bstr = atob(arr[1]);
-            var n = bstr.length;
-            var u8arr = new Uint8Array(n);
-            while(n--) {
-                u8arr[n] = bstr.charCodeAt(n);
-            }
-            return new Blob([u8arr], {type: mime});
-        }
-
-    function showInitialUebungenState() {
-    var container = document.getElementById('uebungen-liste');
-    
-    if (activeHashtagFilter.length === 0) {
-        container.innerHTML = '<div class="alert alert-info" style="text-align: center;">Wähle einen Hashtag aus, um nach Übungen zu suchen.</div>';
-    } else {
-        ladeUebungen();
-    }
-    
-    renderHashtagFilter();
-}
-
+        
+        
         async function ladeUebungen() {
             var container = document.getElementById('uebungen-liste');
             container.innerHTML = '<div class="loading">Lade Übungen...</div>';
