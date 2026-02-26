@@ -2172,10 +2172,12 @@ function createDividerLines() {
     });
 }
 
-// ✅ NEU: Beim Checkbox-Toggle Linien neu erstellen
 function updateOverlays() {
-	if (isDraggingDivider) return; // NICHT neu zeichnen während Drag!
-    createDividerLines(); // ✅ Linien neu erstellen
+    if (isDraggingDivider) {
+        createOverlays(); // Nur Overlays, keine Divider-Linien!
+        return;
+    }
+    createDividerLines();
     createOverlays();
 }
 
@@ -2196,7 +2198,7 @@ function onMove(ev) {
 
     customDividers[dividerIndex] = percentage;
     updateDividerPositions();
-    updateOverlays();
+    createOverlays();
 }
 
     function onEnd(ev) {
