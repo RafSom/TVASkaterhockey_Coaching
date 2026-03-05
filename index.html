@@ -2403,6 +2403,7 @@ async function saveUebungen() {
     try {
         var savedCount = 0;
         var errors = [];
+        var gespeicherteUebungIds = []; // NEU: Array für die IDs
         
         for (var i = 0; i < forms.length; i++) {
             var form = forms[i];
@@ -2440,47 +2441,51 @@ async function saveUebungen() {
                     selectedHashtags.push(cb.value);
                 });
                 
-                // Custom Hashtags
                 var customHashtags = document.getElementById('custom-hashtags-' + uebungIndex).value;
-               if (customHashtags) {
-    customHashtags.split(' ').forEach(function(tag) {
-        tag = tag.trim();
-        if (!tag) return;
-        // Prüfe, ob das Tag mit "#" beginnt, wenn nicht, füge es hinzu
-        if (!tag.startsWith('#')) {
-            tag = '#' + tag;
-        }
-        // Jetzt immer mit #
-        selectedHashtags.push(tag);
+                if (customHashtags) {
+                    customHashtags.split(' ').forEach(function(tag) {
+                        tag = tag.trim();
+                        if (!tag) return;
+                        if (!tag.startsWith('#')) {
+                            tag = '#' + tag;
+                        }
+                        selectedHashtags.push(tag);
 
-        // NEU: Custom Hashtag zur globalen Liste hinzufügen
-        if (!verfuegbareHashtags.some(h => h.toLowerCase() === tag.toLowerCase())) {
-            verfuegbareHashtags.push(tag);
-        }
-    });
-}
+                        if (!verfuegbareHashtags.some(h => h.toLowerCase() === tag.toLowerCase())) {
+                            verfuegbareHashtags.push(tag);
+                        }
+                    });
+                }
                 
                 var uebungsname = document.getElementById('uebungsname-' + uebungIndex).value.trim();
-var nameExists = alleUebungen.some(function(u) {
-    return u.titel && u.titel.toLowerCase() === uebungsname.toLowerCase();
-});
-if (nameExists) {
-    alert('Der Übungsname "' + uebungsname + '" existiert bereits. Bitte wähle einen anderen Namen.');
-    button.disabled = false;
-    button.textContent = 'Übungen speichern';
-    return;
-}
+                var nameExists = alleUebungen.some(function(u) {
+                    return u.titel && u.titel.toLowerCase() === uebungsname.toLowerCase();
+                });
+                if (nameExists) {
+                    alert('Der Übungsname "' + uebungsname + '" existiert bereits. Bitte wähle einen anderen Namen.');
+                    button.disabled = false;
+                    button.textContent = 'Übungen speichern';
+                    return;
+                }
                 
                 var insertResult = await supabaseClient.from('uebungen').insert([{
                     bild_url: publicURL.data.publicUrl,
                     hashtags: selectedHashtags,
                     titel: uebungsname,
                     notizen: uebungsname
-                }]);
+                }]).select(); // NEU: .select() um die IDs zurückzubekommen
                 
                 if (insertResult.error) {
                     errors.push('Datenbank Fehler (Übung ' + uebungIndex + '): ' + insertResult.error.message);
                     continue;
+                }
+                
+                // NEU: ID der gespeicherten Übung merken
+                if (insertResult.data && insertResult.data[0]) {
+                    gespeicherteUebungIds.push({
+                        id: insertResult.data[0].id,
+                        originalIndex: uebungIndex
+                    });
                 }
                 
                 savedCount++;
@@ -2490,26 +2495,31 @@ if (nameExists) {
             }
         }
         
-        // NEU: Hashtag-Liste aufräumen und Filter neu rendern
         verfuegbareHashtags = [...new Set(verfuegbareHashtags)];
         verfuegbareHashtags.sort((a, b) => a.localeCompare(b, 'de'));
         renderHashtagFilter();
         
         if (savedCount > 0) {
-    // Hashtag-Liste aufräumen und Filter neu rendern
-    verfuegbareHashtags = [...new Set(verfuegbareHashtags)];
-    verfuegbareHashtags.sort((a, b) => a.localeCompare(b, 'de'));
-    renderHashtagFilter();
+            verfuegbareHashtags = [...new Set(verfuegbareHashtags)];
+            verfuegbareHashtags.sort((a, b) => a.localeCompare(b, 'de'));
+            renderHashtagFilter();
+            setupHashtagForms();
 
-    // NEU: Hashtag-Dropdowns im Upload-Modal neu bauen
-    setupHashtagForms();
-
-    alert('✓ ' + savedCount + ' Übung(en) gespeichert!' + (errors.length > 0 ? '\n\n⚠️ ' + errors.length + ' Fehler aufgetreten.' : ''));
-    closeModal('upload-modal');
-    showInitialUebungenState();
-} else {
-    alert('❌ Keine Übungen gespeichert.\n\n' + errors.join('\n'));
-}
+            alert('✓ ' + savedCount + ' Übung(en) gespeichert!' + (errors.length > 0 ? '\n\n⚠️ ' + errors.length + ' Fehler aufgetreten.' : ''));
+            closeModal('upload-modal');
+            showInitialUebungenState();
+            
+            // NEU: Frage ob Trainingsplan erstellt werden soll
+            if (gespeicherteUebungIds.length > 0) {
+                setTimeout(function() {
+                    if (confirm('Möchtest du aus diesen Übungen direkt einen Trainingsplan erstellen?')) {
+                        openPlanBuilderWithUebungen(gespeicherteUebungIds);
+                    }
+                }, 300);
+            }
+        } else {
+            alert('❌ Keine Übungen gespeichert.\n\n' + errors.join('\n'));
+        }
         
     } catch (err) {
         alert('Kritischer Fehler: ' + err.message);
@@ -2519,14 +2529,34 @@ if (nameExists) {
     }
 }
 
-function showInitialUebungenState() {
-    var container = document.getElementById('uebungen-liste');
-    if (activeHashtagFilter.length === 0) {
-        container.innerHTML = '<div class="alert alert-info" style="text-align: center;">Wähle einen Hashtag aus, um nach Übungen zu suchen.</div>';
-    } else {
-        ladeUebungen();
-    }
-    renderHashtagFilter();
+
+async function openPlanBuilderWithUebungen(uebungIds) {
+    document.getElementById('plan-builder-modal').classList.add('active');
+    document.body.classList.add('modal-open');
+    
+    // Titel vorschlagen
+    var heute = new Date();
+    var datumString = heute.toLocaleDateString('de-DE');
+    document.getElementById('plan-titel').value = 'Trainingsplan ' + datumString;
+    document.getElementById('plan-datum').value = heute.toISOString().split('T')[0];
+    
+    // Übungen in Selects laden
+    await ladeUebungenInSelects();
+    
+    // Sortiere die IDs nach dem Original-Index (1-4)
+    uebungIds.sort(function(a, b) {
+        return a.originalIndex - b.originalIndex;
+    });
+    
+    // Setze die Übungen in die entsprechenden Slots
+    uebungIds.forEach(function(uebungInfo, index) {
+        var slotNumber = index + 1;
+        if (slotNumber <= 4) {
+            var select = document.getElementById('uebung-select-' + slotNumber);
+            select.value = uebungInfo.id;
+            updatePlanPreview(slotNumber);
+        }
+    });
 }
         
         
