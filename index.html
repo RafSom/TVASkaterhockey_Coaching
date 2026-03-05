@@ -2878,15 +2878,6 @@ async function renderTrainingsplanCard(plan) {
     return card;
 }
             
-            html += '</div>';
-            html += '<div class="trainingsplan-actions">';
-            html += '<button class="btn-primary" onclick="showTrainingsplanDetail(' + plan.id + ')">📋 Anzeigen</button>';
-            html += '<button class="btn-danger" onclick="deleteTrainingsplan(' + plan.id + ')">Löschen</button>';
-            html += '</div>';
-            
-            card.innerHTML = html;
-            return card;
-        }
 
         async function deleteTrainingsplan(id) {
             if (!confirm('Trainingsplan löschen?')) return;
