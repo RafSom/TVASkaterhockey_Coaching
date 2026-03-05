@@ -2858,30 +2858,25 @@ async function deleteUebung(id) {
             }
         }
 
-        async function renderTrainingsplanCard(plan) {
-            var card = document.createElement('div');
-            card.className = 'trainingsplan-card';
-            
-            var datum = plan.datum ? new Date(plan.datum).toLocaleDateString('de-DE') : 'Kein Datum';
-            
-            var html = '<div class="trainingsplan-header">';
-            html += '<div><div class="trainingsplan-titel">' + plan.titel + '</div>';
-            html += '<div class="trainingsplan-datum">' + datum + '</div></div></div>';
-            html += '<div class="trainingsplan-uebungen">';
-            
-            var uebungIds = [plan.uebung1_id, plan.uebung2_id, plan.uebung3_id, plan.uebung4_id];
-            
-            for (var i = 0; i < uebungIds.length; i++) {
-                if (uebungIds[i]) {
-                    var uebung = await supabaseClient.from('uebungen').select('*').eq('id', uebungIds[i]).single();
-                    if (uebung.data) {
-                        html += '<div class="trainingsplan-uebung-preview">';
-                        html += '<span class="trainingsplan-uebung-label">Übung ' + (i + 1) + '</span>';
-                        html += '<img src="' + uebung.data.bild_url + '">';
-                        html += '</div>';
-                    }
-                }
-            }
+async function renderTrainingsplanCard(plan) {
+    var card = document.createElement('div');
+    card.className = 'trainingsplan-card';
+    
+    var datum = plan.datum ? new Date(plan.datum).toLocaleDateString('de-DE') : 'Kein Datum';
+    
+    var html = '<div class="trainingsplan-header">';
+    html += '<div><div class="trainingsplan-titel">' + plan.titel + '</div>';
+    html += '<div class="trainingsplan-datum">' + datum + '</div></div></div>';
+    
+    // NEU: Bilder komplett entfernt, direkt zu den Actions
+    html += '<div class="trainingsplan-actions">';
+    html += '<button class="btn-primary" onclick="showTrainingsplanDetail(' + plan.id + ')">📋 Anzeigen</button>';
+    html += '<button class="btn-danger" onclick="deleteTrainingsplan(' + plan.id + ')">Löschen</button>';
+    html += '</div>';
+    
+    card.innerHTML = html;
+    return card;
+}
             
             html += '</div>';
             html += '<div class="trainingsplan-actions">';
