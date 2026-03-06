@@ -1877,41 +1877,88 @@ function kopiereFuerWhatsApp() {
         }
 
 function teileUebrigeSpieler(spielerListe) {
-    // Wenn >= 8 Spieler: Teile in 2 Blöcke auf
-    if (spielerListe.length >= 8) {
-        var angreifer = spielerListe.filter(function(s) { return s.position === 'Angreifer'; });
-        var verteidiger = spielerListe.filter(function(s) { return s.position === 'Verteidiger'; });
-        
-        // Sortiere nach Stärke
-        angreifer.sort(function(a, b) { return b.staerke - a.staerke; });
-        verteidiger.sort(function(a, b) { return b.staerke - a.staerke; });
-        
-        var block1 = [];
-        var block2 = [];
-        
-        // Verteile Angreifer abwechselnd (stärkster → Block 1, zweitstärkster → Block 2, etc.)
-        for (var i = 0; i < angreifer.length; i++) {
-            if (i % 2 === 0) {
-                block1.push(angreifer[i]);
-            } else {
-                block2.push(angreifer[i]);
-            }
-        }
-        
-        // Verteile Verteidiger abwechselnd
-        for (var i = 0; i < verteidiger.length; i++) {
-            if (i % 2 === 0) {
-                block1.push(verteidiger[i]);
-            } else {
-                block2.push(verteidiger[i]);
-            }
-        }
-        
-        return { block1: block1, block2: block2 };
+    // Wenn < 8 Spieler: Alle in einen Block
+    if (spielerListe.length < 8) {
+        return { block1: spielerListe, block2: [] };
     }
     
-    // Wenn < 8 Spieler: Alle in einen Block
-    return { block1: spielerListe, block2: [] };
+    var angreifer = spielerListe.filter(function(s) { return s.position === 'Angreifer'; });
+    var verteidiger = spielerListe.filter(function(s) { return s.position === 'Verteidiger'; });
+    
+    // Sortiere nach Stärke
+    angreifer.sort(function(a, b) { return b.staerke - a.staerke; });
+    verteidiger.sort(function(a, b) { return b.staerke - a.staerke; });
+    
+    // PRÜFE: Ist ein "perfektes" Paar möglich? (je 2 Angreifer + 2 Verteidiger pro Block)
+    if (angreifer.length >= 4 && verteidiger.length >= 4) {
+        // Verwende die GLEICHE Logik wie bei Block A+B
+        var verfuegbareAngreifer = angreifer.slice(0, 4);
+        var verfuegbareVerteidiger = verteidiger.slice(0, 4);
+
+        var besteBlock1 = null;
+        var besteBlock2 = null;
+        var besteDifferenz = 999;
+
+        // Probiere alle Kombinationen durch
+        for (var a1 = 0; a1 < 4; a1++) {
+            for (var a2 = a1 + 1; a2 < 4; a2++) {
+                for (var v1 = 0; v1 < 4; v1++) {
+                    for (var v2 = v1 + 1; v2 < 4; v2++) {
+                        var restAngreifer = [];
+                        var restVerteidiger = [];
+                        
+                        for (var x = 0; x < 4; x++) {
+                            if (x !== a1 && x !== a2) restAngreifer.push(x);
+                            if (x !== v1 && x !== v2) restVerteidiger.push(x);
+                        }
+
+                        var block1 = [verfuegbareAngreifer[a1], verfuegbareAngreifer[a2], verfuegbareVerteidiger[v1], verfuegbareVerteidiger[v2]];
+                        var block2 = [verfuegbareAngreifer[restAngreifer[0]], verfuegbareAngreifer[restAngreifer[1]], verfuegbareVerteidiger[restVerteidiger[0]], verfuegbareVerteidiger[restVerteidiger[1]]];
+
+                        var staerke1 = berechneGesamtstaerke(block1);
+                        var staerke2 = berechneGesamtstaerke(block2);
+                        var differenz = Math.abs(staerke1 - staerke2);
+
+                        if (differenz < besteDifferenz) {
+                            besteBlock1 = block1;
+                            besteBlock2 = block2;
+                            besteDifferenz = differenz;
+                        }
+                    }
+                }
+            }
+        }
+
+        if (besteBlock1 !== null) {
+            return { block1: besteBlock1, block2: besteBlock2 };
+        }
+    }
+    
+    // FALLBACK: Keine perfekte 2+2 Aufteilung möglich → Nach Stärke verteilen
+    var alleSpieler = spielerListe.slice();
+    alleSpieler.sort(function(a, b) { return b.staerke - a.staerke; });
+    
+    var block1 = [];
+    var block2 = [];
+    var zielGroesse = Math.floor(spielerListe.length / 2);
+    
+    // Snake-Draft nach Stärke
+    alleSpieler.forEach(function(spieler) {
+        var staerke1 = berechneGesamtstaerke(block1);
+        var staerke2 = berechneGesamtstaerke(block2);
+        
+        if (block1.length >= zielGroesse + 1) {
+            block2.push(spieler);
+        } else if (block2.length >= zielGroesse + 1) {
+            block1.push(spieler);
+        } else if (staerke1 <= staerke2) {
+            block1.push(spieler);
+        } else {
+            block2.push(spieler);
+        }
+    });
+    
+    return { block1: block1, block2: block2 };
 }
 
 // ✅ FIX 2: Drag & Drop zwischen ALLEN Blöcken erlauben
