@@ -1712,13 +1712,41 @@ function closeModal(modalId) {
 
 if (letzteErgebnisse.uebrigeSpieler.length > 0) {
     var aufgeteilt = teileUebrigeSpieler(letzteErgebnisse.uebrigeSpieler);
-    var blockName = buchstaben[aktuellerIndex];
-    var staerke = berechneGesamtstaerke(aufgeteilt.block1);
-    html += '<div class="block-paar"><div class="paar-header">Block ' + blockName + '</div><div class="paar-info">Gesamtstaerke: ' + staerke + '</div><div class="block" data-block-id="' + blockName + '"><div class="block-header">Block ' + blockName + ' (' + staerke + ')</div>';
-    for (var j = 0; j < aufgeteilt.block1.length; j++) {
-        html += '<div class="block-spieler draggable" draggable="true" data-spieler-id="' + aufgeteilt.block1[j].id + '" data-spieler-staerke="' + aufgeteilt.block1[j].staerke + '"><span class="drag-handle">☰</span> ' + aufgeteilt.block1[j].name + ' (' + aufgeteilt.block1[j].staerke + ')</div>';
+    
+    // Block C (immer vorhanden)
+    var blockName1 = buchstaben[aktuellerIndex];
+    var staerke1 = berechneGesamtstaerke(aufgeteilt.block1);
+    
+    if (aufgeteilt.block2.length > 0) {
+        // 2 Blöcke (C und D) bei >= 8 übrigen Spielern
+        var blockName2 = buchstaben[aktuellerIndex + 1];
+        var staerke2 = berechneGesamtstaerke(aufgeteilt.block2);
+        var differenz = Math.abs(staerke1 - staerke2);
+        
+        html += '<div class="block-paar"><div class="paar-header">PAAR ' + (letzteErgebnisse.blockpaare.length + 1) + ': Block ' + blockName1 + ' vs ' + blockName2 + '</div>';
+        html += '<div class="paar-info">Differenz: ' + differenz + ' | Gesamt: ' + (staerke1 + staerke2) + '</div>';
+        
+        html += '<div class="block" data-block-id="' + blockName1 + '"><div class="block-header">Block ' + blockName1 + ' (' + staerke1 + ')</div>';
+        for (var j = 0; j < aufgeteilt.block1.length; j++) {
+            html += '<div class="block-spieler draggable" draggable="true" data-spieler-id="' + aufgeteilt.block1[j].id + '" data-spieler-staerke="' + aufgeteilt.block1[j].staerke + '"><span class="drag-handle">☰</span> ' + aufgeteilt.block1[j].name + ' (' + aufgeteilt.block1[j].staerke + ')</div>';
+        }
+        html += '</div>';
+        
+        html += '<div class="block" data-block-id="' + blockName2 + '"><div class="block-header">Block ' + blockName2 + ' (' + staerke2 + ')</div>';
+        for (var j = 0; j < aufgeteilt.block2.length; j++) {
+            html += '<div class="block-spieler draggable" draggable="true" data-spieler-id="' + aufgeteilt.block2[j].id + '" data-spieler-staerke="' + aufgeteilt.block2[j].staerke + '"><span class="drag-handle">☰</span> ' + aufgeteilt.block2[j].name + ' (' + aufgeteilt.block2[j].staerke + ')</div>';
+        }
+        html += '</div></div>';
+    } else {
+        // Nur 1 Block (C) bei < 8 übrigen Spielern
+        html += '<div class="block-paar"><div class="paar-header">Block ' + blockName1 + '</div>';
+        html += '<div class="paar-info">Gesamtstärke: ' + staerke1 + '</div>';
+        html += '<div class="block" data-block-id="' + blockName1 + '"><div class="block-header">Block ' + blockName1 + ' (' + staerke1 + ')</div>';
+        for (var j = 0; j < aufgeteilt.block1.length; j++) {
+            html += '<div class="block-spieler draggable" draggable="true" data-spieler-id="' + aufgeteilt.block1[j].id + '" data-spieler-staerke="' + aufgeteilt.block1[j].staerke + '"><span class="drag-handle">☰</span> ' + aufgeteilt.block1[j].name + ' (' + aufgeteilt.block1[j].staerke + ')</div>';
+        }
+        html += '</div></div>';
     }
-    html += '</div></div>';
 }
             container.innerHTML = html;
             initDragAndDrop();
@@ -1848,9 +1876,43 @@ function kopiereFuerWhatsApp() {
             return { blockpaare: blockpaare, uebrigeSpieler: uebrigeSpieler };
         }
 
-        function teileUebrigeSpieler(spielerListe) {
-            return { block1: spielerListe, block2: [] };
+function teileUebrigeSpieler(spielerListe) {
+    // Wenn >= 8 Spieler: Teile in 2 Blöcke auf
+    if (spielerListe.length >= 8) {
+        var angreifer = spielerListe.filter(function(s) { return s.position === 'Angreifer'; });
+        var verteidiger = spielerListe.filter(function(s) { return s.position === 'Verteidiger'; });
+        
+        // Sortiere nach Stärke
+        angreifer.sort(function(a, b) { return b.staerke - a.staerke; });
+        verteidiger.sort(function(a, b) { return b.staerke - a.staerke; });
+        
+        var block1 = [];
+        var block2 = [];
+        
+        // Verteile Angreifer abwechselnd (stärkster → Block 1, zweitstärkster → Block 2, etc.)
+        for (var i = 0; i < angreifer.length; i++) {
+            if (i % 2 === 0) {
+                block1.push(angreifer[i]);
+            } else {
+                block2.push(angreifer[i]);
+            }
         }
+        
+        // Verteile Verteidiger abwechselnd
+        for (var i = 0; i < verteidiger.length; i++) {
+            if (i % 2 === 0) {
+                block1.push(verteidiger[i]);
+            } else {
+                block2.push(verteidiger[i]);
+            }
+        }
+        
+        return { block1: block1, block2: block2 };
+    }
+    
+    // Wenn < 8 Spieler: Alle in einen Block
+    return { block1: spielerListe, block2: [] };
+}
 
 // ✅ FIX 2: Drag & Drop zwischen ALLEN Blöcken erlauben
 function initDragAndDrop() {
