@@ -2551,7 +2551,19 @@ async function saveUebungen() {
             try {
                 var imageData = getUebungImageFromOriginal(uebungIndex);
                 var blob = dataURLtoBlob(imageData);
-                var fileName = aktuellesMannschaftName.replace(/\s+/g, '_') + '_' + Date.now() + '_' + uebungIndex + '.jpg';
+                // Umlaute und Sonderzeichen ersetzen
+	var safeName = aktuellesMannschaftName
+	    .replace(/ä/g, 'ae')
+	    .replace(/ö/g, 'oe')
+	    .replace(/ü/g, 'ue')
+	    .replace(/Ä/g, 'Ae')
+	    .replace(/Ö/g, 'Oe')
+	    .replace(/Ü/g, 'Ue')	 
+	    .replace(/ß/g, 'ss')
+    	.replace(/\s+/g, '_')           // Leerzeichen → _
+    	.replace(/[^a-zA-Z0-9_-]/g, ''); // Alle anderen Sonderzeichen entfernen
+
+var fileName = safeName + '_' + Date.now() + '_' + uebungIndex + '.jpg';
                 
                 var uploadResult = await supabaseClient.storage
                     .from('uebungsbilder')
